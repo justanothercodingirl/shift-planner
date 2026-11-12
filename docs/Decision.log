@@ -1,0 +1,39 @@
+# Decision log
+
+One line per non-obvious decision. Add a row after every step.
+
+## Decided
+| Date | Decision | Why | Rejected |
+|---|---|---|---|
+| 2026-11-11 | Employees are available by default and only enter exceptions | Less typing; an assignment fails only if it overlaps an `unavailable` window | Entering every available slot |
+| 2026-11-11 | maxWeeklyHours is set by the manager; contract type only pre-fills it | The number comes from the person's contract | Deriving hours from contract type |
+| 2026-11-11 | `preferred` availability is a hint, not a rule | Manager keeps the final say | Blocking on preferences |
+| 2026-11-11 | Rule violations return 422 with ALL violations at once | Manager fixes everything in one go | Stopping at the first violation |
+| 2026-11-11 | One class per rule behind `ShiftRule`, run by `ShiftValidator` | Adding a rule = one class + one test | Rules inside a controller or one big service |
+| 2026-11-11 | Rest period is configurable, default 11 hours | The default follows German working time law, but businesses differ | Hard-coded value |
+| 2026-11-11 | Publishing an understaffed roster warns but is allowed | Manager may knowingly run short | Blocking publish |
+| 2026-11-11 | Edits after publishing are allowed and notify affected employees | Real rosters change after publishing | Locking the roster fully |
+| 2026-11-11 | Emails are sent by a queued job with retry; mail failure is logged, never shown to the user | Publishing must not fail because of the mail server | Sending mail inside the request |
+| 2026-11-11 | Rules run again for the target employee before a swap can be approved | A swap must not create a violation | Trusting the original check |
+
+## Proposed by Claude, waiting for confirmation
+| Proposal | Why it is needed |
+|---|---|
+| Employee has a one-to-one link to User | Login must know which employee is "me" |
+| Employee has an `active` flag | The spec has the error "employee deactivated" |
+| Shift has a `headcount` field | "Two baristas" and SHIFT_FULL need it |
+| Availability has `weekday` OR `date`, exactly one set | The data model listed only `date`, the field description has both |
+| Managers have no Employee record and cannot be assigned to shifts | Keeps roles simple; change if the manager also works shifts |
+
+## Open questions
+| # | Question | Notes |
+|---|---|---|
+| 1 | Can the manager override WEEKLY_CAP with a confirmation? | If yes, rules need a severity (hard/soft) and `ShiftRule::check()` or `Violation` changes |
+| 2 | "Roster already published and locked" returns 409, but edits after publishing are allowed. Which wins? | Suggestion: published rosters stay editable by the manager, and the 409 is dropped |
+| 3 | Which database? | PostgreSQL or MySQL |
+| 4 | Which PHP and Symfony versions? | Pick the current stable ones at scaffold time |
+| 5 | Which JWT library, and where does React keep the token? | |
+| 6 | SwapRequest statuses | Suggestion: pending, accepted, declined, approved, rejected, cancelled |
+| 7 | Error JSON shape | Suggestion: `{ "violations": [{ "code", "reason" }] }` for rules, `{ "error": { "code", "message" } }` for the rest |
+| 8 | Does a shift count towards the week it starts in when it runs past midnight? | Needed for WEEKLY_CAP and OVERLAP |
+| 9 | Is the rest period checked across roster weeks (Sunday night to Monday morning)? | |
