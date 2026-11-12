@@ -28,8 +28,17 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-12 | Overnight shifts allowed: end earlier than start means it ends the next day; this replaces the 422 for shifts (stays for availability) | Cafes and bars work past midnight | Disallowing overnight shifts |
 | 2026-11-12 | A shift counts towards the week of its start date | Simple; matches how Shift stores date + start + end | Splitting at midnight |
 | 2026-11-12 | Rest period is checked across roster weeks | Legally correct; repository looks up neighbouring shifts by date, not by roster | Within one roster only |
+| 2026-11-12 | Token lives in memory only, so a page refresh logs the user out | Accepted for now; avoids token storage | Refresh token or cookie (revisit later) |
+| 2026-11-12 | Step 1 maps only User and Employee; each later step adds its own entities and migration | One feature per step, reviewable, testable, cleaner git history | One migration for the whole model |
+| 2026-11-12 | Employees screen (manager) is screen 6 in the spec, built in step 2 | Managing employees is a manager feature with no screen | API only, no screen |
+| 2026-11-12 | Step 1 ships API plus Login only on the frontend | Matches the spec's build order | Employees page in step 1 |
+| 2026-11-12 | `maxWeeklyHours` is required in the API; React pre-fills it from the contract type | Matches "contract type only suggests a value" | API-side default |
+| 2026-11-12 | First manager and demo data come from doctrine/doctrine-fixtures-bundle (dev dependency) | Empty database has no login; demo data is useful for screenshots | Console command |
+| 2026-11-12 | React dev server proxies /api to the Symfony server via Vite's proxy | Avoids CORS in development with no extra library | CORS bundle |
+| 2026-11-12 | JWT key pair is generated locally and kept out of git | Private key must never be committed | Committing keys |
 
 ## Open questions
 | # | Question | Notes |
 |---|---|---|
 | 6 | SwapRequest statuses | Deferred to build step 4. Suggestion: pending, accepted, declined, approved, rejected, cancelled |
+| 10 | How is a manager created after the first one (seeded by fixture)? | Out of step 1. Also: how does a manager who also works shifts get an Employee record? |

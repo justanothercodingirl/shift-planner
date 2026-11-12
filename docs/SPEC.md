@@ -146,10 +146,11 @@ test, with no changes elsewhere.
 3. Availability editor
 4. My shifts and swap requests
 5. Hours overview
+6. Employees (manager: list, create, edit, deactivate; built in step 2)
 
 ## 9. Build order
 1. Entities, auth, employee CRUD.
-2. Roster and shift API plus the week view.
+2. Roster and shift API plus the week view and the Employees screen.
 3. Rule engine with tests (spend the most time here).
 4. Swap workflow and notifications.
 5. Hours export, Docker, CI, README with screenshots.
