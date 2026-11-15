@@ -42,3 +42,6 @@ One line per non-obvious decision. Add a row after every step.
 |---|---|---|
 | 6 | SwapRequest statuses | Deferred to build step 4. Suggestion: pending, accepted, declined, approved, rejected, cancelled |
 | 10 | How is a manager created after the first one (seeded by fixture)? | Out of step 1. Also: how does a manager who also works shifts get an Employee record? |
+| 2026-11-15 | docs/task.md is the only build order; one task = one commit | One source of truth; the spec's 5 steps and the task list had drifted apart | Build order in SPEC.md |
+| 2026-11-15 | Repositories have `save()` and `remove()`; services persist through them | Services stay free of the EntityManager (RULES.md backend rule 2) | EntityManager in services |
+| 2026-11-15 | Docker setup is task 29, at the end | The project already runs locally; matches the spec's original order | Docker first |

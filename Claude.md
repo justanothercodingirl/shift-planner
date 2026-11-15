@@ -7,11 +7,10 @@ that break the rules.
 ## Stack
 - Backend: PHP, Symfony, Doctrine ORM, Symfony Messenger, PHPUnit
 - Frontend: React, Vite, ESLint + Prettier
-- Auth: JWT, two roles (manager, employee)
+- Auth: JWT via lexik/jwt-authentication-bundle, two roles (manager, employee))
 - Exact versions, database and JWT library: see "Open questions" in docs/DECISIONS.md
 
 ## Commands
-Update this section as soon as the project is scaffolded.
 
 - Backend run:   `cd backend && symfony serve`
 - Backend tests: `cd backend && php bin/phpunit`

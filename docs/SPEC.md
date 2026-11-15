@@ -124,11 +124,9 @@ test, with no changes elsewhere.
 | Availability | Editing a colleague's availability | 403 |
 | Roster and shifts | Roster for that week already exists | 409 |
 | Roster and shifts | Shift date outside the roster week | 422 |
-| Roster and shifts | End before start | 422 |
 | Roster and shifts | Headcount below 1 | 422 |
 | Assign | Employee or shift not found | 404 |
 | Assign | Employee deactivated | 422 |
-| Assign | Roster already published and locked | 409 (conflicts with "edits after publishing", see DECISIONS.md) |
 | Publish | Roster already published | 409 |
 | Publish | Roster has no shifts | 422 |
 | Publish | Shifts still understaffed | Warning, publish allowed |
@@ -146,11 +144,10 @@ test, with no changes elsewhere.
 3. Availability editor
 4. My shifts and swap requests
 5. Hours overview
-6. Employees (manager: list, create, edit, deactivate; built in step 2)
+6. Employees (manager: list, create, edit, deactivate)
 
 ## 9. Build order
-1. Entities, auth, employee CRUD.
-2. Roster and shift API plus the week view and the Employees screen.
-3. Rule engine with tests (spend the most time here).
-4. Swap workflow and notifications.
-5. Hours export, Docker, CI, README with screenshots.
+See docs/task.md. It is the only build order.
+Work through docs/task.md in order. One task = one commit, with its tests, using the task's exact commit message.
+- Never start the next task and never commit without the developer's approval.
+- After a commit, tick the task off in docs/task.md.
