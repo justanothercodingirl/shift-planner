@@ -36,6 +36,8 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-12 | First manager and demo data come from doctrine/doctrine-fixtures-bundle (dev dependency) | Empty database has no login; demo data is useful for screenshots | Console command |
 | 2026-11-12 | React dev server proxies /api to the Symfony server via Vite's proxy | Avoids CORS in development with no extra library | CORS bundle |
 | 2026-11-12 | JWT key pair is generated locally and kept out of git | Private key must never be committed | Committing keys |
+| 2026-11-15 | User role is one enum column (`UserRole`: manager, employee); `getRoles()` maps it to ROLE_MANAGER / ROLE_EMPLOYEE | The spec has two exclusive roles | Symfony JSON roles array |
+| 2026-11-15 | User table is named `app_user` | `user` is a reserved word in PostgreSQL | Quoting `"user"` |
 
 ## Open questions
 | # | Question | Notes |
