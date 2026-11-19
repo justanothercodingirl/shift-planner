@@ -38,6 +38,7 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-12 | JWT key pair is generated locally and kept out of git | Private key must never be committed | Committing keys |
 | 2026-11-15 | User role is one enum column (`UserRole`: manager, employee); `getRoles()` maps it to ROLE_MANAGER / ROLE_EMPLOYEE | The spec has two exclusive roles | Symfony JSON roles array |
 | 2026-11-15 | User table is named `app_user` | `user` is a reserved word in PostgreSQL | Quoting `"user"` |
+| 2026-11-19 | Demo fixtures create 1 manager and 3 employee users (`@example.com`) sharing one fixed dev password in `UserFixtures::DEMO_PASSWORD`; Employee records are added to the fixtures in task 5/6 | Fixtures are dev/test only, so a known password is safe and needs no setup | Password from an env var |
 
 ## Open questions
 | # | Question | Notes |

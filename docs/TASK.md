@@ -3,8 +3,8 @@
 One task = one commit. Work in order.
 
 ## Phase 1: Foundation
-- [ ] 1. feat: add User entity and migration
-- [ ] 2. feat: add fixtures for first manager and demo data
+- [x] 1. feat: add User entity and migration
+- [x] 2. feat: add fixtures for first manager and demo data
 - [ ] 3. feat: add JWT login endpoint
 - [ ] 4. feat: add exception listener and shared error shape
 - [ ] 5. feat: add Employee entity with position and contract enums
