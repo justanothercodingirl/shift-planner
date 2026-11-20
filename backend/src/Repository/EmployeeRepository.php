@@ -22,6 +22,12 @@ class EmployeeRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
+    /** @return list<Employee> */
+    public function findAllOrderedByName(): array
+    {
+        return $this->findBy([], ['name' => 'ASC']);
+    }
+
     public function remove(Employee $employee): void
     {
         $this->getEntityManager()->remove($employee);

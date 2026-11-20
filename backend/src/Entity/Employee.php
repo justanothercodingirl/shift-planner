@@ -22,7 +22,7 @@ class Employee
     private bool $active = true;
 
     public function __construct(
-        #[ORM\OneToOne(targetEntity: User::class)]
+        #[ORM\OneToOne(targetEntity: User::class, cascade: ['persist'])]
         #[ORM\JoinColumn(nullable: false, unique: true)]
         private User $user,
         #[ORM\Column(length: 100)]
@@ -69,5 +69,18 @@ class Employee
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    public function update(string $name, Position $position, ContractType $contractType, int $maxWeeklyHours): void
+    {
+        $this->name = $name;
+        $this->position = $position;
+        $this->contractType = $contractType;
+        $this->maxWeeklyHours = $maxWeeklyHours;
+    }
+
+    public function deactivate(): void
+    {
+        $this->active = false;
     }
 }

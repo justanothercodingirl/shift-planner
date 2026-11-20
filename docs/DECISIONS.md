@@ -49,6 +49,10 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-20 | Employee table is `employee`; `Position` and `ContractType` are string-backed enums with the values from SPEC; `user` is a required one-to-one (unique) so a user has at most one Employee | Matches SPEC enums and the 2026-11-12 one-to-one decision; the unique index enforces it in the database | Integer-backed enums, nullable user |
 | 2026-11-20 | `maxWeeklyHours` has no server-side default on the entity | The API requires it and React pre-fills the suggestion from the contract type (2026-11-12) | Default derived from contract type |
 | 2026-11-20 | The demo manager also has an Employee record (Mara Keller, shift_lead, full_time, 40 h) | Shows the owner-operator case from 2026-11-12; how a later manager gets an Employee record stays open question 10 | Demo manager without Employee |
+| 2026-11-20 | `POST /api/employees` creates the User (role employee, password set by the manager, stored hashed) and the Employee in one database write (`cascade: persist` on `Employee::user`); a manager creates new staff accounts this way | Staff need a login and no other task creates users; one write cannot leave a user without an employee | Linking to an existing user id |
+| 2026-11-20 | Employees are deactivated with `POST /api/employees/{id}/deactivate` (idempotent); there is no delete endpoint | DECISIONS 2026-11-12: soft-deactivate keeps past rosters and hours; an explicit action is clear in logs and tests | `DELETE`, or `PATCH {active: false}` |
+| 2026-11-20 | Employee API is manager-only (`#[IsGranted('ROLE_MANAGER')]` on the controller); email and password are not editable through `PUT` | RULES backend 8; changing a login identity needs its own flow | Per-method checks |
+| 2026-11-20 | A duplicate email is checked in the service (409 `EMAIL_ALREADY_USED`); a simultaneous race is caught only by the database unique index and would surface as a generic 500 | Rare for a single manager; keeps the service simple | Catching the database exception in the service |
 
 ## Open questions
 | # | Question | Notes |
