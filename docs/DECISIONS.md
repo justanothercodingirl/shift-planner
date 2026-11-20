@@ -53,6 +53,11 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-20 | Employees are deactivated with `POST /api/employees/{id}/deactivate` (idempotent); there is no delete endpoint | DECISIONS 2026-11-12: soft-deactivate keeps past rosters and hours; an explicit action is clear in logs and tests | `DELETE`, or `PATCH {active: false}` |
 | 2026-11-20 | Employee API is manager-only (`#[IsGranted('ROLE_MANAGER')]` on the controller); email and password are not editable through `PUT` | RULES backend 8; changing a login identity needs its own flow | Per-method checks |
 | 2026-11-20 | A duplicate email is checked in the service (409 `EMAIL_ALREADY_USED`); a simultaneous race is caught only by the database unique index and would surface as a generic 500 | Rare for a single manager; keeps the service simple | Catching the database exception in the service |
+| 2026-11-20 | The frontend uses `react-router-dom` (routes `/login` and protected `/`) | Six screens are coming and need real URLs and a protected-route pattern | No router, switching on auth state |
+| 2026-11-20 | Prettier is a dev dependency; `.prettierrc` sets no semicolons, single quotes and `endOfLine: auto` | RULES frontend 8 and CLAUDE.md name Prettier; `auto` stops CRLF checkouts on Windows from failing the check | Default LF-only check |
+| 2026-11-20 | The browser reads the email and role from the JWT payload for display only; the server alone enforces permissions | The UI must show who is signed in without an extra API call, and nothing in the browser can be trusted for security | A `/api/me` endpoint |
+| 2026-11-20 | `HomePage` is a minimal placeholder (who is signed in plus logout) until the roster week view replaces it in task 12 | Gives the login something to land on and proves the protected route | No landing page |
+| 2026-11-20 | Frontend has no automated tests yet; task 7 is verified by lint, Prettier, build and a manual login | The task list adds no test runner, and the spec forbids extra libraries | Adding Vitest now |
 
 ## Open questions
 | # | Question | Notes |
