@@ -39,6 +39,9 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-15 | User role is one enum column (`UserRole`: manager, employee); `getRoles()` maps it to ROLE_MANAGER / ROLE_EMPLOYEE | The spec has two exclusive roles | Symfony JSON roles array |
 | 2026-11-15 | User table is named `app_user` | `user` is a reserved word in PostgreSQL | Quoting `"user"` |
 | 2026-11-19 | Demo fixtures create 1 manager and 3 employee users (`@example.com`) sharing one fixed dev password in `UserFixtures::DEMO_PASSWORD`; Employee records are added to the fixtures in task 5/6 | Fixtures are dev/test only, so a known password is safe and needs no setup | Password from an env var |
+| 2026-11-20 | Login is `POST /api/login` with `{email, password}` and returns `{token}`; every other `/api` path needs a Bearer token | Simple, stateless, matches the React in-memory token decision | `/api/auth/login` |
+| 2026-11-20 | JWT lifetime is 1 hour (`token_ttl: 3600` in `lexik_jwt_authentication.yaml`) | Short enough to limit damage if a token leaks; a page refresh logs out anyway | 8 hours |
+| 2026-11-20 | `JWT_PASSPHRASE` stays in the committed `.env` (random value from the recipe); the key files in `config/jwt/*.pem` are gitignored and each checkout generates its own with `lexik:jwt:generate-keypair`; production must set a real secret | The passphrase alone is useless without the private key, and the test environment does not read `.env.local` | Passphrase only in `.env.local` |
 
 ## Open questions
 | # | Question | Notes |
