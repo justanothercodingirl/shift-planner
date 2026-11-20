@@ -56,6 +56,7 @@ final class LoginTest extends WebTestCase
         $this->login(self::EMAIL, 'wrong-password');
 
         self::assertResponseStatusCodeSame(401);
+        self::assertSame('INVALID_CREDENTIALS', $this->responseData()['error']['code'] ?? null);
     }
 
     public function testUnknownEmailIsRejected(): void
@@ -63,6 +64,7 @@ final class LoginTest extends WebTestCase
         $this->login('nobody@example.com', self::PASSWORD);
 
         self::assertResponseStatusCodeSame(401);
+        self::assertSame('INVALID_CREDENTIALS', $this->responseData()['error']['code'] ?? null);
     }
 
     public function testTokenCarriesTheUserAndExpiresInOneHour(): void

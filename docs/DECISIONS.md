@@ -22,7 +22,7 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-12 | A manager may also have an Employee record and be assigned to shifts | Supports owner-operators | Managers never work shifts |
 | 2026-11-12 | PostgreSQL 16, PHP >= 8.4, Symfony 8.1, Doctrine ORM 3.7, React 19, Vite 8 | Already in the scaffold | MySQL |
 | 2026-11-12 | JWT via lexik/jwt-authentication-bundle; React keeps the token in memory | XSS cannot read it from storage; reload means login again | localStorage, httpOnly cookie |
-| 2026-11-12 | One error shape: `{ "error": { "code", "message", "violations": [{ "code", "reason" }] } }`, `violations` only for rule failures | RULES.md API rule 3; one error component in React | Two shapes |
+| 2026-11-12 | One error shape: `{ "error": { "code", "message", "violations": [{ "code", "reason" }] } }`, `violations` only for rule failures and DTO validation errors (updated 2026-11-20) | RULES.md API rule 3; one error component in React | Two shapes |
 | 2026-11-12 | All rules are hard; no WEEKLY_CAP override | Keeps `ShiftRule::check()` and `Violation` as in the spec | Soft rules with severity |
 | 2026-11-12 | Published rosters stay editable by the manager; the 409 "published and locked" is dropped | Matches the earlier decision on edits after publishing | Locking after publish |
 | 2026-11-12 | Overnight shifts allowed: end earlier than start means it ends the next day; this replaces the 422 for shifts (stays for availability) | Cafes and bars work past midnight | Disallowing overnight shifts |
@@ -42,6 +42,10 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-20 | Login is `POST /api/login` with `{email, password}` and returns `{token}`; every other `/api` path needs a Bearer token | Simple, stateless, matches the React in-memory token decision | `/api/auth/login` |
 | 2026-11-20 | JWT lifetime is 1 hour (`token_ttl: 3600` in `lexik_jwt_authentication.yaml`) | Short enough to limit damage if a token leaks; a page refresh logs out anyway | 8 hours |
 | 2026-11-20 | `JWT_PASSPHRASE` stays in the committed `.env` (random value from the recipe); the key files in `config/jwt/*.pem` are gitignored and each checkout generates its own with `lexik:jwt:generate-keypair`; production must set a real secret | The passphrase alone is useless without the private key, and the test environment does not read `.env.local` | Passphrase only in `.env.local` |
+| 2026-11-20 | DTO validation errors return 422 `VALIDATION_FAILED` with one `violations` entry per broken constraint (`code` = field name, `reason` = message) | The frontend error component can list or highlight every problem from one shape | One joined message without `violations` |
+| 2026-11-20 | API error codes: `INVALID_CREDENTIALS`, `UNAUTHENTICATED`, `INVALID_TOKEN`, `TOKEN_EXPIRED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404), `METHOD_NOT_ALLOWED` (405), `VALIDATION_FAILED` (422), `INTERNAL_ERROR` (500); business errors use the code of their `DomainException` | One list for backend and frontend; every failure has a stable code | Free-text errors |
+| 2026-11-20 | Unexpected exceptions return a fixed generic 500 message; the real error is only in the log (Symfony's error listener already logs it) | Never leak internals, queries or credentials to the client | Showing the exception text in dev |
+| 2026-11-20 | Auth failures are shaped by `JwtErrorListener` (the firewall answers before the normal exception listener); everything else by `ExceptionListener`; both build bodies through `ErrorResponseFactory` | The shape is defined in exactly one place | Custom entry point and handlers per firewall |
 
 ## Open questions
 | # | Question | Notes |
