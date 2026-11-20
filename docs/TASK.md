@@ -6,7 +6,7 @@ One task = one commit. Work in order.
 - [x] 1. feat: add User entity and migration
 - [x] 2. feat: add fixtures for first manager and demo data
 - [x] 3. feat: add JWT login endpoint
-- [ ] 4. feat: add exception listener and shared error shape
+- [x] 4. feat: add exception listener and shared error shape
 - [ ] 5. feat: add Employee entity with position and contract enums
 - [ ] 6. feat: add employee CRUD API (manager only)
 - [ ] 7. feat: add login page and auth context in React
