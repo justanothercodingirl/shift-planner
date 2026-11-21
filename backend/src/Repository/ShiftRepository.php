@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Roster;
 use App\Entity\Shift;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,6 +21,12 @@ class ShiftRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->persist($shift);
         $this->getEntityManager()->flush();
+    }
+
+    /** @return list<Shift> */
+    public function findByRosterOrdered(Roster $roster): array
+    {
+        return $this->findBy(['roster' => $roster], ['date' => 'ASC', 'startTime' => 'ASC']);
     }
 
     public function remove(Shift $shift): void

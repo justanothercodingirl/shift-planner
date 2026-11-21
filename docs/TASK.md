@@ -12,7 +12,7 @@ One task = one commit. Work in order.
 - [x] 7. feat: add login page and auth context in React
 
 ## Phase 2: Roster and shifts
-- [ ] 8. feat: add Roster and Shift entities
+- [x] 8. feat: add Roster and Shift entities
 - [ ] 9. feat: add roster API (create week, list, get)
 - [ ] 10. feat: add shift API (create, update, delete)
 - [ ] 11. feat: add employee list and form in React

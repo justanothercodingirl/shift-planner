@@ -63,6 +63,9 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-21 | `Roster` has no collection of shifts; shifts are loaded through `ShiftRepository` | Keeps the entities small and all queries in repositories (RULES backend 2) | Bidirectional one-to-many |
 | 2026-11-21 | The code that turns a shift's date and times into real timestamps (overnight = ends next day) is added in task 16 where the overlap rule first needs it | Avoids building it before anything uses it | Adding it to the entity now |
 | 2026-11-21 | The demo roster is for next week's Monday, computed when fixtures load, with five shifts including one overnight and two with headcount 2 | The week view has data to show and demo data never goes stale | A fixed date |
+| 2026-11-21 | Roster API: `POST /api/rosters` (201), `GET /api/rosters`, `GET /api/rosters/{id}`; a `weekStart` that is not a Monday is 422 `WEEK_START_NOT_MONDAY`, a week that already has a roster is 409 `ROSTER_ALREADY_EXISTS`, an unknown id is 404 `ROSTER_NOT_FOUND` | SPEC section 7 and the Monday decision of this date | Allowing any start date |
+| 2026-11-21 | All roster and shift endpoints are manager-only for now (`#[IsGranted('ROLE_MANAGER')]`); employees get their own read endpoint with the "my shifts" task (27) | Employee visibility depends on that screen, so it is decided when the screen is built | Employees reading published rosters now |
+| 2026-11-21 | `GET /api/rosters` lists rosters newest week first without shifts; `GET /api/rosters/{id}` returns the roster with its shifts ordered by date then start time (`date` as `YYYY-MM-DD`, times as `HH:MM`) | A list stays light; the week view needs the shifts in display order | Shifts in the list |
 
 ## Open questions
 | # | Question | Notes |

@@ -22,6 +22,17 @@ class RosterRepository extends ServiceEntityRepository
         $this->getEntityManager()->flush();
     }
 
+    public function findOneByWeekStart(\DateTimeImmutable $weekStart): ?Roster
+    {
+        return $this->findOneBy(['weekStart' => $weekStart]);
+    }
+
+    /** @return list<Roster> */
+    public function findAllNewestFirst(): array
+    {
+        return $this->findBy([], ['weekStart' => 'DESC']);
+    }
+
     public function remove(Roster $roster): void
     {
         $this->getEntityManager()->remove($roster);
