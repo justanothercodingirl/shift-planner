@@ -74,4 +74,18 @@ class Shift
     {
         return $this->headcount;
     }
+
+    public function update(
+        \DateTimeImmutable $date,
+        \DateTimeImmutable $startTime,
+        \DateTimeImmutable $endTime,
+        Position $requiredPosition,
+        int $headcount,
+    ): void {
+        $this->date = $date;
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
+        $this->requiredPosition = $requiredPosition;
+        $this->headcount = $headcount;
+    }
 }
