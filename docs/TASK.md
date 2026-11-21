@@ -9,7 +9,7 @@ One task = one commit. Work in order.
 - [x] 4. feat: add exception listener and shared error shape
 - [x] 5. feat: add Employee entity with position and contract enums
 - [x] 6. feat: add employee CRUD API (manager only)
-- [ ] 7. feat: add login page and auth context in React
+- [x] 7. feat: add login page and auth context in React
 
 ## Phase 2: Roster and shifts
 - [ ] 8. feat: add Roster and Shift entities

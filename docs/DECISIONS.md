@@ -58,6 +58,11 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-20 | The browser reads the email and role from the JWT payload for display only; the server alone enforces permissions | The UI must show who is signed in without an extra API call, and nothing in the browser can be trusted for security | A `/api/me` endpoint |
 | 2026-11-20 | `HomePage` is a minimal placeholder (who is signed in plus logout) until the roster week view replaces it in task 12 | Gives the login something to land on and proves the protected route | No landing page |
 | 2026-11-20 | Frontend has no automated tests yet; task 7 is verified by lint, Prettier, build and a manual login | The task list adds no test runner, and the spec forbids extra libraries | Adding Vitest now |
+| 2026-11-21 | A roster week starts on Monday (ISO week); the roster API (task 9) rejects any other `weekStart`, and there is one roster per week (unique index on `roster.week_start`) | Matches the German working-time background and the Monday to Sunday weekly cap and hours overview | Sunday start, any start date |
+| 2026-11-21 | Tables are `roster` and `shift`; a shift stores `date`, `start_time` and `end_time` (time of day), `required_position` and `headcount`; `RosterStatus` is a string enum (`draft`, `published`) | `end` is a reserved SQL word, so the columns are `start_time` / `end_time` (same reason as `app_user`) | Columns named `start` and `end`, timestamps |
+| 2026-11-21 | `Roster` has no collection of shifts; shifts are loaded through `ShiftRepository` | Keeps the entities small and all queries in repositories (RULES backend 2) | Bidirectional one-to-many |
+| 2026-11-21 | The code that turns a shift's date and times into real timestamps (overnight = ends next day) is added in task 16 where the overlap rule first needs it | Avoids building it before anything uses it | Adding it to the entity now |
+| 2026-11-21 | The demo roster is for next week's Monday, computed when fixtures load, with five shifts including one overnight and two with headcount 2 | The week view has data to show and demo data never goes stale | A fixed date |
 
 ## Open questions
 | # | Question | Notes |
