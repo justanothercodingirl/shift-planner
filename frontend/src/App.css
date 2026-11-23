@@ -245,3 +245,64 @@
 .empty-state p {
   margin: 0;
 }
+
+.page button.shift-card {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+}
+
+.page button.add-shift {
+  padding: 6px 8px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.shift-dialog {
+  width: min(420px, calc(100% - 32px));
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+  }
+}
+
+.shift-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    color: var(--text-h);
+  }
+  .error-message {
+    margin-top: 0;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

@@ -1,18 +1,23 @@
 import { labelOf, POSITIONS } from '../constants/options.js'
 import { isOvernight } from '../utils/shifts.js'
 
-export default function ShiftCard({ shift }) {
+// Clicking a shift card opens it for editing.
+export default function ShiftCard({ shift, onSelect }) {
   const people =
     shift.headcount === 1 ? '1 person' : `${shift.headcount} people`
 
   return (
-    <div className="shift-card">
+    <button
+      type="button"
+      className="shift-card"
+      onClick={() => onSelect(shift)}
+    >
       <strong>
         {shift.startTime}–{shift.endTime}
         {isOvernight(shift) && <span className="next-day"> +1 day</span>}
       </strong>
       <span>{labelOf(POSITIONS, shift.requiredPosition)}</span>
       <span className="muted">needs {people}</span>
-    </div>
+    </button>
   )
 }

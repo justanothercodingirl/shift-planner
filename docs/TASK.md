@@ -16,7 +16,7 @@ One task = one commit. Work in order.
 - [x] 9. feat: add roster API (create week, list, get)
 - [x] 10. feat: add shift API (create, update, delete)
 - [x] 11. feat: add employee list and form in React
-- [ ] 12. feat: add roster week view in React
+- [x] 12. feat: add roster week view in React
 - [ ] 13. feat: add shift create dialog in React
 
 ## Phase 3: Assignment and rule engine
