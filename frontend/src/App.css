@@ -181,3 +181,67 @@
     color: var(--text);
   }
 }
+
+.page-roster {
+  max-width: 1280px;
+  overflow-x: auto;
+}
+
+.week-navigator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+
+  strong {
+    min-width: 190px;
+    color: var(--text-h);
+    text-align: center;
+  }
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.day-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 160px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--text-h);
+  }
+}
+
+.shift-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--accent-bg);
+  font-size: 14px;
+
+  strong {
+    color: var(--text-h);
+  }
+  .next-day {
+    color: var(--accent);
+    font-weight: 600;
+  }
+}
+
+.empty-state p {
+  margin: 0;
+}

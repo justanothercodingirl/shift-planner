@@ -8,6 +8,8 @@ use App\EventListener\ExceptionListener;
 use App\Exception\DomainException;
 use App\Http\ErrorResponseFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -105,21 +107,44 @@ final class ExceptionListenerTest extends TestCase
         self::assertStringNotContainsString('hunter2', json_encode($body, JSON_THROW_ON_ERROR));
     }
 
+    public function testUnexpectedExceptionIsLoggedWithItsRealMessage(): void
+    {
+        $exception = new \RuntimeException('the real cause');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('error')
+            ->with(
+                self::stringContains('the real cause'),
+                self::callback(static fn (array $context): bool => $context['exception'] === $exception),
+            );
+
+        $this->handle($exception, $logger);
+    }
+
+    public function testExpectedErrorsAreNotLoggedAsErrors(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('error');
+
+        $this->handle(new NotFoundHttpException(), $logger);
+        $this->handle(new AccessDeniedHttpException(), $logger);
+    }
+
     public function testNonApiPathsAreLeftAlone(): void
     {
         $event = $this->event(new NotFoundHttpException(), '/some/page');
 
-        (new ExceptionListener(new ErrorResponseFactory()))($event);
+        (new ExceptionListener(new ErrorResponseFactory(), new NullLogger()))($event);
 
         self::assertNull($event->getResponse());
     }
 
     /** @return array{0: int, 1: array<string, mixed>} */
-    private function handle(\Throwable $exception): array
+    private function handle(\Throwable $exception, ?LoggerInterface $logger = null): array
     {
         $event = $this->event($exception, '/api/anything');
 
-        (new ExceptionListener(new ErrorResponseFactory()))($event);
+        (new ExceptionListener(new ErrorResponseFactory(), $logger ?? new NullLogger()))($event);
 
         $response = $event->getResponse();
         self::assertNotNull($response);

@@ -6,6 +6,7 @@ namespace App\EventListener;
 
 use App\Exception\DomainException;
 use App\Http\ErrorResponseFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -16,7 +17,9 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 /**
  * Turns every exception on an /api request into the shared JSON error shape.
- * Symfony's own error listener already logs the exception, so we do not log again.
+ * This listener stops the event, so Symfony's own error logger never runs:
+ * unexpected exceptions (the generic 500) are therefore logged here, with the
+ * real message, while the client only sees the generic text.
  */
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final class ExceptionListener
@@ -28,8 +31,10 @@ final class ExceptionListener
         405 => 'METHOD_NOT_ALLOWED',
     ];
 
-    public function __construct(private readonly ErrorResponseFactory $errors)
-    {
+    public function __construct(
+        private readonly ErrorResponseFactory $errors,
+        private readonly LoggerInterface $logger,
+    ) {
     }
 
     public function __invoke(ExceptionEvent $event): void
@@ -70,6 +75,11 @@ final class ExceptionListener
                 Response::$statusTexts[$status] ?? 'Error',
             );
         }
+
+        $this->logger->error(
+            sprintf('Unhandled %s: %s', $exception::class, $exception->getMessage()),
+            ['exception' => $exception],
+        );
 
         return $this->errors->create(500, 'INTERNAL_ERROR', 'Something went wrong on our side.');
     }

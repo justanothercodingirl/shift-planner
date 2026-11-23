@@ -10,11 +10,13 @@ export default function AppLayout() {
       <header className="layout-header">
         <strong>Shift Planner</strong>
         <nav>
-          <NavLink to="/" end>
-            Home
-          </NavLink>
-          {user?.role === 'manager' && (
-            <NavLink to="/employees">Employees</NavLink>
+          {user?.role === 'manager' ? (
+            <>
+              <NavLink to="/roster">Roster</NavLink>
+              <NavLink to="/employees">Employees</NavLink>
+            </>
+          ) : (
+            <NavLink to="/my-shifts">My shifts</NavLink>
           )}
         </nav>
         <div className="layout-user">
