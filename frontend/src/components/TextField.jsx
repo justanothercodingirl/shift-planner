@@ -4,6 +4,7 @@ export default function TextField({
   value,
   onChange,
   autoComplete,
+  ...inputProps
 }) {
   return (
     <label className="text-field">
@@ -14,6 +15,7 @@ export default function TextField({
         onChange={(event) => onChange(event.target.value)}
         autoComplete={autoComplete}
         required
+        {...inputProps}
       />
     </label>
   )
