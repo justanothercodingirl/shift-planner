@@ -28,15 +28,17 @@ class RosterFixtures extends Fixture
         $roster = new Roster($weekStart);
         $manager->persist($roster);
 
-        foreach (self::SHIFTS as [$dayOffset, $start, $end, $position, $headcount]) {
-            $manager->persist(new Shift(
+        foreach (self::SHIFTS as $index => [$dayOffset, $start, $end, $position, $headcount]) {
+            $shift = new Shift(
                 $roster,
                 $weekStart->modify(sprintf('+%d days', $dayOffset)),
                 new \DateTimeImmutable($start),
                 new \DateTimeImmutable($end),
                 $position,
                 $headcount,
-            ));
+            );
+            $manager->persist($shift);
+            $this->addReference('shift-'.$index, $shift);
         }
 
         $manager->flush();

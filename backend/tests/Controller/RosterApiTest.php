@@ -113,6 +113,7 @@ final class RosterApiTest extends ApiTestCase
                 'endTime' => '14:00',
                 'requiredPosition' => 'barista',
                 'headcount' => 2,
+                'assignments' => [],
             ],
             [
                 'id' => $late->getId(),
@@ -122,6 +123,7 @@ final class RosterApiTest extends ApiTestCase
                 'endTime' => '18:00',
                 'requiredPosition' => 'kitchen',
                 'headcount' => 1,
+                'assignments' => [],
             ],
         ], $body['shifts']);
     }

@@ -32,7 +32,11 @@ final class RosterController
     {
         $roster = $this->rosters->get($id);
 
-        return new JsonResponse(RosterResponse::withShifts($roster, $this->rosters->shiftsOf($roster)));
+        return new JsonResponse(RosterResponse::withShifts(
+            $roster,
+            $this->rosters->shiftsOf($roster),
+            $this->rosters->assignmentsOf($roster),
+        ));
     }
 
     #[Route('', methods: ['POST'])]

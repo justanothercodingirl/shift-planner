@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Dto\CreateRosterRequest;
+use App\Entity\Assignment;
 use App\Entity\Roster;
 use App\Entity\Shift;
 use App\Exception\RosterAlreadyExistsException;
 use App\Exception\RosterNotFoundException;
 use App\Exception\WeekStartNotMondayException;
+use App\Repository\AssignmentRepository;
 use App\Repository\RosterRepository;
 use App\Repository\ShiftRepository;
 
@@ -18,6 +20,7 @@ class RosterService
     public function __construct(
         private readonly RosterRepository $rosters,
         private readonly ShiftRepository $shifts,
+        private readonly AssignmentRepository $assignments,
     ) {
     }
 
@@ -55,5 +58,16 @@ class RosterService
     public function shiftsOf(Roster $roster): array
     {
         return $this->shifts->findByRosterOrdered($roster);
+    }
+
+    /** @return array<int, list<Assignment>> the roster's assignments, keyed by shift id */
+    public function assignmentsOf(Roster $roster): array
+    {
+        $byShift = [];
+        foreach ($this->assignments->findByRoster($roster) as $assignment) {
+            $byShift[(int) $assignment->getShift()->getId()][] = $assignment;
+        }
+
+        return $byShift;
     }
 }

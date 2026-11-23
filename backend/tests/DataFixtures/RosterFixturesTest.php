@@ -11,6 +11,7 @@ use App\Enum\Position;
 use App\Enum\RosterStatus;
 use App\Repository\RosterRepository;
 use App\Repository\ShiftRepository;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -26,7 +27,9 @@ final class RosterFixturesTest extends KernelTestCase
         $this->em = $container->get(EntityManagerInterface::class);
         $this->em->getConnection()->beginTransaction();
 
-        (new RosterFixtures())->load($this->em);
+        $fixtures = new RosterFixtures();
+        $fixtures->setReferenceRepository(new ReferenceRepository($this->em));
+        $fixtures->load($this->em);
 
         $rosters = $container->get(RosterRepository::class)->findAll();
         self::assertCount(1, $rosters);

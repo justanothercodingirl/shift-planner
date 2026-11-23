@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use App\Entity\Assignment;
 use App\Entity\Roster;
 use App\Entity\Shift;
 
@@ -23,12 +24,16 @@ final class RosterResponse
     }
 
     /**
-     * @param list<Shift> $shifts
+     * @param list<Shift>                  $shifts
+     * @param array<int, list<Assignment>> $assignmentsByShift assignments keyed by shift id
      *
      * @return array{id: int|null, weekStart: string, status: string, shifts: list<array<string, mixed>>}
      */
-    public static function withShifts(Roster $roster, array $shifts): array
+    public static function withShifts(Roster $roster, array $shifts, array $assignmentsByShift = []): array
     {
-        return self::from($roster) + ['shifts' => array_map(ShiftResponse::from(...), $shifts)];
+        return self::from($roster) + ['shifts' => array_map(
+            static fn (Shift $shift): array => ShiftResponse::from($shift, $assignmentsByShift[$shift->getId()] ?? []),
+            $shifts,
+        )];
     }
 }

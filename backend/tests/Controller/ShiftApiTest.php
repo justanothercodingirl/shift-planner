@@ -52,6 +52,7 @@ final class ShiftApiTest extends ApiTestCase
             'endTime' => '15:00',
             'requiredPosition' => 'barista',
             'headcount' => 2,
+            'assignments' => [],
         ], $created);
 
         $this->call('GET', '/api/rosters/'.$this->roster->getId(), token: $token);
@@ -137,6 +138,7 @@ final class ShiftApiTest extends ApiTestCase
             'endTime' => '18:00',
             'requiredPosition' => 'kitchen',
             'headcount' => 1,
+            'assignments' => [],
         ], $this->body());
     }
 

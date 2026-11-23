@@ -32,7 +32,9 @@ final class ShiftController
     #[Route('/api/shifts/{id}', requirements: ['id' => '\d+'], methods: ['PUT'])]
     public function update(int $id, #[MapRequestPayload] ShiftRequest $request): JsonResponse
     {
-        return new JsonResponse(ShiftResponse::from($this->shifts->update($id, $request)));
+        $shift = $this->shifts->update($id, $request);
+
+        return new JsonResponse(ShiftResponse::from($shift, $this->shifts->assignmentsOf($shift)));
     }
 
     #[Route('/api/shifts/{id}', requirements: ['id' => '\d+'], methods: ['DELETE'])]

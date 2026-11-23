@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use App\Entity\Assignment;
 use App\Entity\Shift;
 
 /** The one place that decides what a shift looks like in API responses. */
 final class ShiftResponse
 {
     /**
-     * @return array{id: int|null, rosterId: int|null, date: string, startTime: string, endTime: string, requiredPosition: string, headcount: int}
+     * @param list<Assignment> $assignments the people assigned to this shift
+     *
+     * @return array{id: int|null, rosterId: int|null, date: string, startTime: string, endTime: string, requiredPosition: string, headcount: int, assignments: list<array{id: int|null, employeeId: int|null, employeeName: string}>}
      */
-    public static function from(Shift $shift): array
+    public static function from(Shift $shift, array $assignments = []): array
     {
         return [
             'id' => $shift->getId(),
@@ -22,6 +25,7 @@ final class ShiftResponse
             'endTime' => $shift->getEndTime()->format('H:i'),
             'requiredPosition' => $shift->getRequiredPosition()->value,
             'headcount' => $shift->getHeadcount(),
+            'assignments' => array_map(AssignmentResponse::summary(...), $assignments),
         ];
     }
 }
