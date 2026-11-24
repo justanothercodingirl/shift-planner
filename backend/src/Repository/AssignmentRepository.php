@@ -9,6 +9,7 @@ use App\Entity\Employee;
 use App\Entity\Roster;
 use App\Entity\Shift;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<Assignment> */
@@ -50,6 +51,34 @@ class AssignmentRepository extends ServiceEntityRepository
             ->where('a.shift = :shift')
             ->setParameter('shift', $shift)
             ->orderBy('e.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Every shift the employee is assigned to whose date is inside the range
+     * (both ends included), by date and start time. Looks across roster weeks:
+     * it never filters by roster.
+     *
+     * @return list<Shift>
+     */
+    public function findShiftsOfEmployeeBetweenDates(
+        Employee $employee,
+        \DateTimeImmutable $from,
+        \DateTimeImmutable $to,
+    ): array {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('s')
+            ->from(Shift::class, 's')
+            ->join(Assignment::class, 'a', 'WITH', 'a.shift = s')
+            ->where('a.employee = :employee')
+            ->andWhere('s.date >= :from')
+            ->andWhere('s.date <= :to')
+            ->setParameter('employee', $employee)
+            ->setParameter('from', $from, Types::DATE_IMMUTABLE)
+            ->setParameter('to', $to, Types::DATE_IMMUTABLE)
+            ->orderBy('s.date', 'ASC')
+            ->addOrderBy('s.startTime', 'ASC')
             ->getQuery()
             ->getResult();
     }

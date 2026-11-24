@@ -21,7 +21,7 @@ One task = one commit. Work in order.
 
 ## Phase 3: Assignment and rule engine
 - [x] 14. feat: add Assignment entity and assign endpoint
-- [ ] 15. feat: add ShiftRule interface and ShiftValidator service
+- [x] 15. feat: add ShiftRule interface and ShiftValidator service
 - [ ] 16. feat: add overlap rule with tests
 - [ ] 17. feat: add position match rule with tests
 - [ ] 18. feat: add rest period rule with tests

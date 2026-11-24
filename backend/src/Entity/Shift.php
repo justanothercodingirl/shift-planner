@@ -75,6 +75,20 @@ class Shift
         return $this->headcount;
     }
 
+    /** The real start moment: the shift's date combined with its start time. */
+    public function getStartsAt(): \DateTimeImmutable
+    {
+        return $this->date->setTime((int) $this->startTime->format('H'), (int) $this->startTime->format('i'));
+    }
+
+    /** The real end moment; an end time earlier than the start time means the shift ends the next day. */
+    public function getEndsAt(): \DateTimeImmutable
+    {
+        $endsAt = $this->date->setTime((int) $this->endTime->format('H'), (int) $this->endTime->format('i'));
+
+        return $this->endTime->format('H:i') < $this->startTime->format('H:i') ? $endsAt->modify('+1 day') : $endsAt;
+    }
+
     public function update(
         \DateTimeImmutable $date,
         \DateTimeImmutable $startTime,

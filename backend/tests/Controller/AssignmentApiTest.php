@@ -172,18 +172,36 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertSame('ASSIGNMENT_NOT_FOUND', $this->body()['error']['code']);
     }
 
+    public function testOverlappingShiftReturnsOverlapViolation(): void
+    {
+        // Create everything before the first request: a request resets the entity manager.
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna');
+        $morning = $this->shift(2, '09:00', '15:00');
+        $afternoon = $this->shift(2, '12:00', '18:00');
+        $this->call('POST', $this->url($morning), ['employeeId' => $anna->getId()], $token);
+
+        $this->call('POST', $this->url($afternoon), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('RULE_VIOLATION', $error['code']);
+        self::assertSame(['OVERLAP'], array_column($error['violations'], 'code'));
+        self::assertStringContainsString('Anna already works 09:00 to 15:00', $error['violations'][0]['reason']);
+    }
+
     private function url(Shift $shift): string
     {
         return '/api/shifts/'.$shift->getId().'/assignments';
     }
 
-    private function shift(int $headcount): Shift
+    private function shift(int $headcount, string $start = '09:00', string $end = '15:00'): Shift
     {
         $shift = new Shift(
             $this->roster,
             new \DateTimeImmutable('2031-02-05'),
-            new \DateTimeImmutable('09:00'),
-            new \DateTimeImmutable('15:00'),
+            new \DateTimeImmutable($start),
+            new \DateTimeImmutable($end),
             Position::Barista,
             $headcount,
         );
