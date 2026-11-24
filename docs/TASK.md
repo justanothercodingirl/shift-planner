@@ -20,7 +20,7 @@ One task = one commit. Work in order.
 - [x] 13. feat: add shift create dialog in React
 
 ## Phase 3: Assignment and rule engine
-- [ ] 14. feat: add Assignment entity and assign endpoint
+- [x] 14. feat: add Assignment entity and assign endpoint
 - [ ] 15. feat: add ShiftRule interface and ShiftValidator service
 - [ ] 16. feat: add overlap rule with tests
 - [ ] 17. feat: add position match rule with tests
