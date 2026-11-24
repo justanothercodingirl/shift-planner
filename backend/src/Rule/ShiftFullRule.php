@@ -21,7 +21,7 @@ final class ShiftFullRule implements ShiftRule
             return null;
         }
 
-        $position = str_replace('_', ' ', $shift->getRequiredPosition()->value);
+        $position = $shift->getRequiredPosition()->label();
 
         return new Violation(
             'SHIFT_FULL',

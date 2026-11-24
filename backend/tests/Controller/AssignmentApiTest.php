@@ -190,6 +190,21 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertStringContainsString('Anna already works 09:00 to 15:00', $error['violations'][0]['reason']);
     }
 
+    public function testAssigningTheWrongPositionReturnsPositionMismatch(): void
+    {
+        $token = $this->managerToken();
+        $baristaShift = $this->shift(1);
+        $clara = $this->employee('Clara', Position::Kitchen);
+
+        $this->call('POST', $this->url($baristaShift), ['employeeId' => $clara->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('RULE_VIOLATION', $error['code']);
+        self::assertSame(['POSITION_MISMATCH'], array_column($error['violations'], 'code'));
+        self::assertSame('Shift needs barista, Clara is kitchen', $error['violations'][0]['reason']);
+    }
+
     private function url(Shift $shift): string
     {
         return '/api/shifts/'.$shift->getId().'/assignments';
@@ -210,10 +225,10 @@ final class AssignmentApiTest extends ApiTestCase
         return $shift;
     }
 
-    private function employee(string $name): Employee
+    private function employee(string $name, Position $position = Position::Barista): Employee
     {
         $user = $this->saveUser(strtolower($name).'-api@example.com', UserRole::Employee);
-        $employee = new Employee($user, $name, Position::Barista, ContractType::PartTime, 20);
+        $employee = new Employee($user, $name, $position, ContractType::PartTime, 20);
         self::getContainer()->get(EmployeeRepository::class)->save($employee);
 
         return $employee;

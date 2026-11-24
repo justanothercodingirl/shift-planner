@@ -11,4 +11,10 @@ enum Position: string
     case Kitchen = 'kitchen';
     case Bar = 'bar';
     case ShiftLead = 'shift_lead';
+
+    /** The position in plain words for messages: "shift_lead" becomes "shift lead". */
+    public function label(): string
+    {
+        return str_replace('_', ' ', $this->value);
+    }
 }
