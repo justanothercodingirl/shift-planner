@@ -190,6 +190,24 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertStringContainsString('Anna already works 09:00 to 15:00', $error['violations'][0]['reason']);
     }
 
+    public function testTooLittleRestBetweenShiftsReturnsRestPeriodViolation(): void
+    {
+        // Create everything before the first request: a request resets the entity manager.
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna');
+        $closing = $this->shift(2, '14:00', '22:00', '2031-02-05');
+        $opening = $this->shift(2, '07:00', '13:00', '2031-02-06');
+        $this->call('POST', $this->url($closing), ['employeeId' => $anna->getId()], $token);
+
+        $this->call('POST', $this->url($opening), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('RULE_VIOLATION', $error['code']);
+        self::assertSame(['REST_PERIOD'], array_column($error['violations'], 'code'));
+        self::assertSame('Only 9 hours rest since the previous shift', $error['violations'][0]['reason']);
+    }
+
     public function testAssigningTheWrongPositionReturnsPositionMismatch(): void
     {
         $token = $this->managerToken();
@@ -210,11 +228,11 @@ final class AssignmentApiTest extends ApiTestCase
         return '/api/shifts/'.$shift->getId().'/assignments';
     }
 
-    private function shift(int $headcount, string $start = '09:00', string $end = '15:00'): Shift
+    private function shift(int $headcount, string $start = '09:00', string $end = '15:00', string $date = '2031-02-05'): Shift
     {
         $shift = new Shift(
             $this->roster,
-            new \DateTimeImmutable('2031-02-05'),
+            new \DateTimeImmutable($date),
             new \DateTimeImmutable($start),
             new \DateTimeImmutable($end),
             Position::Barista,
