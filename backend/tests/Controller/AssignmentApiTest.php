@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\Assignment;
 use App\Entity\Employee;
 use App\Entity\Roster;
 use App\Entity\Shift;
 use App\Enum\ContractType;
 use App\Enum\Position;
 use App\Enum\UserRole;
+use App\Repository\AssignmentRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\RosterRepository;
 use App\Repository\ShiftRepository;
@@ -206,6 +208,48 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertSame('RULE_VIOLATION', $error['code']);
         self::assertSame(['REST_PERIOD'], array_column($error['violations'], 'code'));
         self::assertSame('Only 9 hours rest since the previous shift', $error['violations'][0]['reason']);
+    }
+
+    public function testGoingOverTheWeeklyCapReturnsWeeklyCapViolation(): void
+    {
+        // Create everything before the first request: a request resets the entity manager.
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna'); // 20 hours a week
+        $monday = $this->shift(2, '09:00', '17:00', '2031-02-03');
+        $wednesday = $this->shift(2, '09:00', '17:00', '2031-02-05');
+        $friday = $this->shift(2, '09:00', '17:00', '2031-02-07');
+        $this->call('POST', $this->url($monday), ['employeeId' => $anna->getId()], $token);
+        $this->call('POST', $this->url($wednesday), ['employeeId' => $anna->getId()], $token);
+        self::assertResponseStatusCodeSame(201);
+
+        $this->call('POST', $this->url($friday), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('RULE_VIOLATION', $error['code']);
+        self::assertSame(['WEEKLY_CAP'], array_column($error['violations'], 'code'));
+        self::assertSame('This would bring Anna to 24 of 20 hours', $error['violations'][0]['reason']);
+    }
+
+    public function testABrokenAssignmentReportsEveryViolationTogetherSortedByCode(): void
+    {
+        $token = $this->managerToken();
+        $clara = $this->employee('Clara', Position::Kitchen); // 20 hours a week
+        $tuesday = $this->shift(1, '08:00', '18:00', '2031-02-04');
+        $wednesday = $this->shift(1, '08:00', '18:00', '2031-02-05');
+        $new = $this->shift(1, '09:00', '15:00', '2031-02-05'); // barista shift
+        // Written directly: the rules would refuse these, and the test needs them to exist.
+        $assignments = self::getContainer()->get(AssignmentRepository::class);
+        $assignments->save(new Assignment($tuesday, $clara));
+        $assignments->save(new Assignment($wednesday, $clara));
+
+        $this->call('POST', $this->url($new), ['employeeId' => $clara->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('This assignment breaks 3 rules.', $error['message']);
+        self::assertSame(['OVERLAP', 'POSITION_MISMATCH', 'WEEKLY_CAP'], array_column($error['violations'], 'code'));
+        self::assertSame('This would bring Clara to 26 of 20 hours', $error['violations'][2]['reason']);
     }
 
     public function testAssigningTheWrongPositionReturnsPositionMismatch(): void

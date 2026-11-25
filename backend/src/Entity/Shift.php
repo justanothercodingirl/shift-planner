@@ -89,6 +89,12 @@ class Shift
         return $this->endTime->format('H:i') < $this->startTime->format('H:i') ? $endsAt->modify('+1 day') : $endsAt;
     }
 
+    /** The length of the shift in minutes; an overnight shift runs through midnight. */
+    public function getDurationInMinutes(): int
+    {
+        return intdiv($this->getEndsAt()->getTimestamp() - $this->getStartsAt()->getTimestamp(), 60);
+    }
+
     public function update(
         \DateTimeImmutable $date,
         \DateTimeImmutable $startTime,

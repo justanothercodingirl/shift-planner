@@ -24,7 +24,7 @@ One task = one commit. Work in order.
 - [x] 15. feat: add ShiftRule interface and ShiftValidator service
 - [x] 16. feat: add overlap rule with tests
 - [x] 17. feat: add position match rule with tests
-- [ ] 18. feat: add rest period rule with tests
+- [x] 18. feat: add rest period rule with tests
 - [ ] 19. feat: add weekly cap rule with tests
 - [ ] 20. feat: add Availability entity, API and rule with tests
 - [ ] 21. feat: add availability editor in React

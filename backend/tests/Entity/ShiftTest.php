@@ -55,6 +55,16 @@ final class ShiftTest extends TestCase
         self::assertSame('2031-03-01 06:00', $shift->getEndsAt()->format('Y-m-d H:i'));
     }
 
+    public function testDurationInMinutes(): void
+    {
+        self::assertSame(390, $this->shift('2031-02-05', '09:00', '15:30')->getDurationInMinutes());
+    }
+
+    public function testDurationOfAnOvernightShiftRunsThroughMidnight(): void
+    {
+        self::assertSame(480, $this->shift('2031-02-07', '18:00', '02:00')->getDurationInMinutes());
+    }
+
     private function shift(string $date, string $start, string $end): Shift
     {
         return new Shift(
