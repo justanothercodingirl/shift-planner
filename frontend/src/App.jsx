@@ -4,6 +4,7 @@ import AppLayout from './components/AppLayout.jsx'
 import HomeRedirect from './components/HomeRedirect.jsx'
 import ManagerRoute from './components/ManagerRoute.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import AvailabilityPage from './pages/AvailabilityPage.jsx'
 import EmployeesPage from './pages/EmployeesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import MyShiftsPage from './pages/MyShiftsPage.jsx'
@@ -17,6 +18,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/my-shifts" element={<MyShiftsPage />} />
+          <Route path="/availability" element={<AvailabilityPage />} />
           <Route element={<ManagerRoute />}>
             <Route path="/roster" element={<RosterPage />} />
             <Route path="/employees" element={<EmployeesPage />} />

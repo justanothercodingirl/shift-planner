@@ -67,6 +67,19 @@ final class EmployeeRepositoryTest extends KernelTestCase
         self::assertNull($this->employees->find($id));
     }
 
+    public function testFindsTheEmployeeBelongingToAUser(): void
+    {
+        $employee = new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20);
+        $this->employees->save($employee);
+
+        self::assertSame($employee, $this->employees->findOneByUser($this->user));
+    }
+
+    public function testAUserWithoutAnEmployeeFindsNothing(): void
+    {
+        self::assertNull($this->employees->findOneByUser($this->user));
+    }
+
     public function testOneUserCannotHaveTwoEmployees(): void
     {
         $this->employees->save(new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20));

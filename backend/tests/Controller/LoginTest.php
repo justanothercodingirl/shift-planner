@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\Employee;
 use App\Entity\User;
+use App\Enum\ContractType;
+use App\Enum\Position;
 use App\Enum\UserRole;
+use App\Repository\EmployeeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -76,6 +80,28 @@ final class LoginTest extends WebTestCase
 
         self::assertSame(self::EMAIL, $payload['username']);
         self::assertSame(3600, $payload['exp'] - $payload['iat']);
+    }
+
+    public function testTokenCarriesTheEmployeeIdOfTheLogin(): void
+    {
+        $user = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => self::EMAIL]);
+        self::assertNotNull($user);
+        $employee = new Employee($user, 'Mara', Position::ShiftLead, ContractType::FullTime, 40);
+        self::getContainer()->get(EmployeeRepository::class)->save($employee);
+
+        $this->login(self::EMAIL, self::PASSWORD);
+        $payload = self::getContainer()->get(JWTTokenManagerInterface::class)->parse($this->responseData()['token'] ?? '');
+
+        self::assertSame($employee->getId(), $payload['employeeId']);
+    }
+
+    public function testTokenHasANullEmployeeIdWhenTheLoginHasNoEmployee(): void
+    {
+        $this->login(self::EMAIL, self::PASSWORD);
+        $payload = self::getContainer()->get(JWTTokenManagerInterface::class)->parse($this->responseData()['token'] ?? '');
+
+        self::assertArrayHasKey('employeeId', $payload);
+        self::assertNull($payload['employeeId']);
     }
 
     private function login(string $email, string $password): void

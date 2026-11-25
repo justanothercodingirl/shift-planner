@@ -16,6 +16,27 @@ export const CONTRACT_TYPES = [
   { value: 'mini_job', label: 'Mini job', suggestedHours: 10 },
 ]
 
+export const WEEKDAYS = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+]
+
+export const AVAILABILITY_TYPES = [
+  { value: 'unavailable', label: 'Cannot work' },
+  { value: 'preferred', label: 'Would prefer' },
+]
+
+// Whether an availability entry repeats every week or applies to one date.
+export const REPEATS = [
+  { value: 'weekly', label: 'Every week' },
+  { value: 'date', label: 'One date only' },
+]
+
 export function labelOf(options, value) {
   return options.find((option) => option.value === value)?.label ?? value
 }

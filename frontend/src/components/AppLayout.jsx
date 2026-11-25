@@ -16,7 +16,10 @@ export default function AppLayout() {
               <NavLink to="/employees">Employees</NavLink>
             </>
           ) : (
-            <NavLink to="/my-shifts">My shifts</NavLink>
+            <>
+              <NavLink to="/my-shifts">My shifts</NavLink>
+              <NavLink to="/availability">My availability</NavLink>
+            </>
           )}
         </nav>
         <div className="layout-user">
