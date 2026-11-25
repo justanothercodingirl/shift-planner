@@ -27,6 +27,7 @@ class RosterFixtures extends Fixture
         $weekStart = (new \DateTimeImmutable('today'))->modify('monday this week')->modify('+1 week');
         $roster = new Roster($weekStart);
         $manager->persist($roster);
+        $this->addReference('roster-demo', $roster);
 
         foreach (self::SHIFTS as $index => [$dayOffset, $start, $end, $position, $headcount]) {
             $shift = new Shift(

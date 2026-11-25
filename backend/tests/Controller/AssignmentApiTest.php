@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\Assignment;
+use App\Entity\Availability;
 use App\Entity\Employee;
 use App\Entity\Roster;
 use App\Entity\Shift;
+use App\Enum\AvailabilityType;
 use App\Enum\ContractType;
 use App\Enum\Position;
 use App\Enum\UserRole;
+use App\Enum\Weekday;
 use App\Repository\AssignmentRepository;
+use App\Repository\AvailabilityRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\RosterRepository;
 use App\Repository\ShiftRepository;
@@ -250,6 +254,36 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertSame('This assignment breaks 3 rules.', $error['message']);
         self::assertSame(['OVERLAP', 'POSITION_MISMATCH', 'WEEKLY_CAP'], array_column($error['violations'], 'code'));
         self::assertSame('This would bring Clara to 26 of 20 hours', $error['violations'][2]['reason']);
+    }
+
+    public function testAssigningInsideAnUnavailableWindowReturnsUnavailable(): void
+    {
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna');
+        $wednesday = $this->shift(1, '09:00', '15:00', '2031-02-05');
+        $availabilities = self::getContainer()->get(AvailabilityRepository::class);
+        $availabilities->save(new Availability($anna, Weekday::Wednesday, null, new \DateTimeImmutable('08:00'), new \DateTimeImmutable('16:00'), AvailabilityType::Unavailable));
+
+        $this->call('POST', $this->url($wednesday), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $error = $this->body()['error'];
+        self::assertSame('RULE_VIOLATION', $error['code']);
+        self::assertSame(['UNAVAILABLE'], array_column($error['violations'], 'code'));
+        self::assertSame('Anna is unavailable Wednesday 08:00 to 16:00', $error['violations'][0]['reason']);
+    }
+
+    public function testAPreferredWindowDoesNotBlockAnAssignment(): void
+    {
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna');
+        $wednesday = $this->shift(1, '09:00', '15:00', '2031-02-05');
+        $availabilities = self::getContainer()->get(AvailabilityRepository::class);
+        $availabilities->save(new Availability($anna, Weekday::Wednesday, null, new \DateTimeImmutable('08:00'), new \DateTimeImmutable('16:00'), AvailabilityType::Preferred));
+
+        $this->call('POST', $this->url($wednesday), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(201);
     }
 
     public function testAssigningTheWrongPositionReturnsPositionMismatch(): void
