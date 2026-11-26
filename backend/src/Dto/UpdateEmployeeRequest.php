@@ -18,6 +18,8 @@ final readonly class UpdateEmployeeRequest
         public ContractType $contractType,
         #[Assert\Positive]
         public int $maxWeeklyHours,
+        /** @var list<Position> extra positions besides the main one; optional */
+        public array $additionalPositions = [],
     ) {
     }
 }

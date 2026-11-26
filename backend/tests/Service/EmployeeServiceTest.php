@@ -76,6 +76,32 @@ final class EmployeeServiceTest extends KernelTestCase
         self::assertSame('upd@example.com', $updated->getUser()->getEmail());
     }
 
+    public function testCreateStoresTheAdditionalPositions(): void
+    {
+        $request = new CreateEmployeeRequest('multi@example.com', 'secret-pass', 'Mia', Position::Barista, ContractType::PartTime, 20, [Position::Service]);
+
+        $employee = $this->service->create($request);
+
+        self::assertSame([Position::Service], $employee->getAdditionalPositions());
+    }
+
+    public function testCreateWithoutAdditionalPositionsHasNone(): void
+    {
+        self::assertSame([], $this->service->create($this->createRequest('none@example.com'))->getAdditionalPositions());
+    }
+
+    public function testUpdateStoresAndClearsTheAdditionalPositions(): void
+    {
+        $employee = $this->service->create($this->createRequest('multi2@example.com'));
+        $id = (int) $employee->getId();
+
+        $with = $this->service->update($id, new UpdateEmployeeRequest('Nina', Position::Barista, ContractType::PartTime, 20, [Position::Service, Position::Bar]));
+        self::assertSame([Position::Service, Position::Bar], $with->getAdditionalPositions());
+
+        $without = $this->service->update($id, new UpdateEmployeeRequest('Nina', Position::Barista, ContractType::PartTime, 20));
+        self::assertSame([], $without->getAdditionalPositions());
+    }
+
     public function testDeactivateKeepsTheRecordAndCanBeRepeated(): void
     {
         $employee = $this->service->create($this->createRequest('off@example.com'));

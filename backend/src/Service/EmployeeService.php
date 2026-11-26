@@ -53,6 +53,7 @@ class EmployeeService
             $request->position,
             $request->contractType,
             $request->maxWeeklyHours,
+            $request->additionalPositions,
         );
         $this->employees->save($employee);
 
@@ -62,7 +63,13 @@ class EmployeeService
     public function update(int $id, UpdateEmployeeRequest $request): Employee
     {
         $employee = $this->get($id);
-        $employee->update($request->name, $request->position, $request->contractType, $request->maxWeeklyHours);
+        $employee->update(
+            $request->name,
+            $request->position,
+            $request->contractType,
+            $request->maxWeeklyHours,
+            $request->additionalPositions,
+        );
         $this->employees->save($employee);
 
         return $employee;

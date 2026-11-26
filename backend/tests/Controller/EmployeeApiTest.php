@@ -73,6 +73,7 @@ final class EmployeeApiTest extends WebTestCase
             'name' => 'Anna Api',
             'email' => 'api-anna@example.com',
             'position' => 'barista',
+            'additionalPositions' => [],
             'contractType' => 'part_time',
             'maxWeeklyHours' => 20,
             'active' => true,
@@ -130,6 +131,57 @@ final class EmployeeApiTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertSame('VALIDATION_FAILED', $this->body()['error']['code']);
+    }
+
+    public function testManagerCreatesAnEmployeeWithAdditionalPositions(): void
+    {
+        $payload = $this->newEmployee(['position' => 'barista', 'additionalPositions' => ['service', 'bar']]);
+
+        $this->call('POST', '/api/employees', $payload, $this->managerToken());
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('barista', $this->body()['position']);
+        self::assertSame(['service', 'bar'], $this->body()['additionalPositions']);
+    }
+
+    public function testCreatingWithoutAdditionalPositionsMeansNone(): void
+    {
+        $this->call('POST', '/api/employees', $this->newEmployee(), $this->managerToken());
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame([], $this->body()['additionalPositions']);
+    }
+
+    public function testAnUnknownAdditionalPositionIsRejectedAs422(): void
+    {
+        $bad = $this->newEmployee(['additionalPositions' => ['astronaut']]);
+
+        $this->call('POST', '/api/employees', $bad, $this->managerToken());
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame('VALIDATION_FAILED', $this->body()['error']['code']);
+    }
+
+    public function testManagerSetsAndClearsAdditionalPositionsOnUpdate(): void
+    {
+        $token = $this->managerToken();
+        $payload = ['name' => 'Anna Api', 'position' => 'barista', 'additionalPositions' => ['service'], 'contractType' => 'part_time', 'maxWeeklyHours' => 20];
+
+        $this->call('PUT', '/api/employees/'.$this->anna->getId(), $payload, $token);
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame(['service'], $this->body()['additionalPositions']);
+
+        $this->call('PUT', '/api/employees/'.$this->anna->getId(), [...$payload, 'additionalPositions' => []], $token);
+        self::assertSame([], $this->body()['additionalPositions']);
+    }
+
+    public function testTheMainPositionAndDuplicatesAreDroppedFromTheAdditionalOnes(): void
+    {
+        $payload = $this->newEmployee(['position' => 'barista', 'additionalPositions' => ['barista', 'service', 'service']]);
+
+        $this->call('POST', '/api/employees', $payload, $this->managerToken());
+
+        self::assertSame(['service'], $this->body()['additionalPositions']);
     }
 
     public function testDuplicateEmailIs409(): void

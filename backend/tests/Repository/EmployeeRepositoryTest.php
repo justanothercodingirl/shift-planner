@@ -56,6 +56,30 @@ final class EmployeeRepositoryTest extends KernelTestCase
         self::assertSame('anna@example.com', $found->getUser()->getEmail());
     }
 
+    public function testAdditionalPositionsSurviveASaveAndReload(): void
+    {
+        $employee = new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20, [Position::Service, Position::Bar]);
+        $this->employees->save($employee);
+        $this->em->clear();
+
+        $found = $this->employees->find($employee->getId());
+
+        self::assertNotNull($found);
+        self::assertSame([Position::Service, Position::Bar], $found->getAdditionalPositions());
+    }
+
+    public function testAnEmployeeWithoutAdditionalPositionsReloadsWithNone(): void
+    {
+        $employee = new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20);
+        $this->employees->save($employee);
+        $this->em->clear();
+
+        $found = $this->employees->find($employee->getId());
+
+        self::assertNotNull($found);
+        self::assertSame([], $found->getAdditionalPositions());
+    }
+
     public function testRemovedEmployeeIsGone(): void
     {
         $employee = new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20);

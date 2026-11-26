@@ -17,20 +17,22 @@ class EmployeeFixtures extends Fixture implements DependentFixtureInterface
 {
     private const EMPLOYEES = [
         'manager' => ['Mara Keller', Position::ShiftLead, ContractType::FullTime, 40],
-        'anna' => ['Anna', Position::Barista, ContractType::PartTime, 20],
+        'anna' => ['Anna', Position::Barista, ContractType::PartTime, 20, [Position::Service]],
         'ben' => ['Ben', Position::Service, ContractType::WorkingStudent, 20],
         'clara' => ['Clara', Position::Kitchen, ContractType::MiniJob, 10],
     ];
 
     public function load(ObjectManager $manager): void
     {
-        foreach (self::EMPLOYEES as $reference => [$name, $position, $contractType, $maxWeeklyHours]) {
+        foreach (self::EMPLOYEES as $reference => $row) {
+            [$name, $position, $contractType, $maxWeeklyHours] = $row;
             $employee = new Employee(
                 $this->getReference('user-'.$reference, User::class),
                 $name,
                 $position,
                 $contractType,
                 $maxWeeklyHours,
+                $row[4] ?? [],
             );
             $manager->persist($employee);
             $this->addReference('employee-'.$reference, $employee);

@@ -286,6 +286,31 @@ final class AssignmentApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
     }
 
+    public function testAnAdditionalPositionLetsAnEmployeeTakeThatShift(): void
+    {
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna', Position::Barista, [Position::Service]);
+        $serviceShift = $this->shift(1, position: Position::Service);
+
+        $this->call('POST', $this->url($serviceShift), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(201);
+    }
+
+    public function testAPositionTheEmployeeLacksIsStillRefusedAndNamesAllTheirPositions(): void
+    {
+        $token = $this->managerToken();
+        $anna = $this->employee('Anna', Position::Barista, [Position::Service]);
+        $kitchenShift = $this->shift(1, position: Position::Kitchen);
+
+        $this->call('POST', $this->url($kitchenShift), ['employeeId' => $anna->getId()], $token);
+
+        self::assertResponseStatusCodeSame(422);
+        $violations = $this->body()['error']['violations'];
+        self::assertSame(['POSITION_MISMATCH'], array_column($violations, 'code'));
+        self::assertSame('Shift needs kitchen, Anna is barista or service', $violations[0]['reason']);
+    }
+
     public function testAssigningTheWrongPositionReturnsPositionMismatch(): void
     {
         $token = $this->managerToken();
@@ -306,14 +331,14 @@ final class AssignmentApiTest extends ApiTestCase
         return '/api/shifts/'.$shift->getId().'/assignments';
     }
 
-    private function shift(int $headcount, string $start = '09:00', string $end = '15:00', string $date = '2031-02-05'): Shift
+    private function shift(int $headcount, string $start = '09:00', string $end = '15:00', string $date = '2031-02-05', Position $position = Position::Barista): Shift
     {
         $shift = new Shift(
             $this->roster,
             new \DateTimeImmutable($date),
             new \DateTimeImmutable($start),
             new \DateTimeImmutable($end),
-            Position::Barista,
+            $position,
             $headcount,
         );
         self::getContainer()->get(ShiftRepository::class)->save($shift);
@@ -321,10 +346,11 @@ final class AssignmentApiTest extends ApiTestCase
         return $shift;
     }
 
-    private function employee(string $name, Position $position = Position::Barista): Employee
+    /** @param list<Position> $additionalPositions */
+    private function employee(string $name, Position $position = Position::Barista, array $additionalPositions = []): Employee
     {
         $user = $this->saveUser(strtolower($name).'-api@example.com', UserRole::Employee);
-        $employee = new Employee($user, $name, $position, ContractType::PartTime, 20);
+        $employee = new Employee($user, $name, $position, ContractType::PartTime, 20, $additionalPositions);
         self::getContainer()->get(EmployeeRepository::class)->save($employee);
 
         return $employee;

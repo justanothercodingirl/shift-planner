@@ -12,7 +12,7 @@ availability and swap shifts. The app refuses assignments that break the rules.
 
 ## 3. Core features
 1. Login with two roles (JWT).
-2. Employee profiles: position, contract type, maximum weekly hours.
+2. Employee profiles: position (plus optional additional positions), contract type, maximum weekly hours.
 3. Availability: employees mark when they cannot or would prefer to work.
 4. Weekly roster: the manager creates shifts and assigns employees in a calendar grid.
 5. Rule check: every assignment is validated; violations are shown with a clear reason.
@@ -27,7 +27,7 @@ mobile app.
 | Entity | Fields |
 |---|---|
 | User | email, password, role (manager, employee) |
-| Employee | user*, name, position, contractType, maxWeeklyHours, active* |
+| Employee | user*, name, position, additionalPositions*, contractType, maxWeeklyHours, active* |
 | Availability | employee, weekday or date, from, to, type |
 | Roster | weekStart, status (draft, published) |
 | Shift | roster, date, start, end, requiredPosition, headcount* |
@@ -87,7 +87,7 @@ Example rows for Anna:
 | Rest period | Minimum hours between two shifts. Default 11, configurable. |
 | Weekly cap | Planned hours must not exceed maxWeeklyHours. |
 | Availability | The shift must not overlap an `unavailable` window. |
-| Position match | The employee's position must match the shift's required position. |
+| Position match | The shift's required position must be the employee's position or one of their additional positions. |
 
 ### Rule violations
 All return 422. Return all violations at once, not only the first.

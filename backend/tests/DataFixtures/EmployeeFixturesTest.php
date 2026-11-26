@@ -68,6 +68,14 @@ final class EmployeeFixturesTest extends KernelTestCase
         self::assertSame(10, $clara->getMaxWeeklyHours());
     }
 
+    public function testAnnaCanAlsoWorkInServiceAndTheOthersOnlyTheirOwnPosition(): void
+    {
+        self::assertSame([Position::Service], $this->employeeOf('anna@example.com')->getAdditionalPositions());
+        self::assertSame([], $this->employeeOf('ben@example.com')->getAdditionalPositions());
+        self::assertSame([], $this->employeeOf('clara@example.com')->getAdditionalPositions());
+        self::assertSame([], $this->employeeOf('manager@example.com')->getAdditionalPositions());
+    }
+
     private function employeeOf(string $email): Employee
     {
         foreach ($this->employees->findAll() as $employee) {

@@ -58,7 +58,37 @@ final class PositionMatchRuleTest extends TestCase
         self::assertSame('Shift needs shift lead, Anna is barista', $violation->reason);
     }
 
-    private function employee(Position $position): Employee
+    public function testAnAdditionalPositionIsAccepted(): void
+    {
+        $anna = $this->employee(Position::Barista, [Position::Service]);
+
+        self::assertNull((new PositionMatchRule())->check($anna, $this->shift(Position::Service)));
+        self::assertNull((new PositionMatchRule())->check($anna, $this->shift(Position::Barista)));
+    }
+
+    public function testAPositionTheEmployeeLacksIsStillReportedAndListsAllTheirPositions(): void
+    {
+        $anna = $this->employee(Position::Barista, [Position::Service]);
+
+        $violation = (new PositionMatchRule())->check($anna, $this->shift(Position::Kitchen));
+
+        self::assertNotNull($violation);
+        self::assertSame('POSITION_MISMATCH', $violation->code);
+        self::assertSame('Shift needs kitchen, Anna is barista or service', $violation->reason);
+    }
+
+    public function testThreePositionsAreListedWithCommasAndOr(): void
+    {
+        $anna = $this->employee(Position::Barista, [Position::Service, Position::Bar]);
+
+        $violation = (new PositionMatchRule())->check($anna, $this->shift(Position::ShiftLead));
+
+        self::assertNotNull($violation);
+        self::assertSame('Shift needs shift lead, Anna is barista, service or bar', $violation->reason);
+    }
+
+    /** @param list<Position> $additionalPositions */
+    private function employee(Position $position, array $additionalPositions = []): Employee
     {
         return new Employee(
             new User('anna@example.com', 'hash', UserRole::Employee),
@@ -66,6 +96,7 @@ final class PositionMatchRuleTest extends TestCase
             $position,
             ContractType::PartTime,
             20,
+            $additionalPositions,
         );
     }
 
