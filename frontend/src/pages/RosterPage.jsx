@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import AssignDialog from '../components/AssignDialog.jsx'
 import Badge from '../components/Badge.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
 import MissingRoster from '../components/MissingRoster.jsx'
 import ShiftDialog from '../components/ShiftDialog.jsx'
 import WeekGrid from '../components/WeekGrid.jsx'
 import WeekNavigator from '../components/WeekNavigator.jsx'
+import useAssignment from '../hooks/useAssignment.js'
+import useEmployees from '../hooks/useEmployees.js'
 import useRoster from '../hooks/useRoster.js'
 import useShiftActions from '../hooks/useShiftActions.js'
 import useShiftDialog from '../hooks/useShiftDialog.js'
@@ -16,6 +19,8 @@ export default function RosterPage() {
     useRoster(weekStart)
   const shiftDialog = useShiftDialog()
   const actions = useShiftActions(roster?.id, reload)
+  const { employees } = useEmployees()
+  const assignment = useAssignment(roster?.shifts ?? [], reload)
 
   function handleAdd(date) {
     actions.clearError()
@@ -68,6 +73,7 @@ export default function RosterPage() {
           shifts={roster.shifts}
           onAdd={handleAdd}
           onSelect={handleSelect}
+          onAssign={assignment.open}
         />
       )}
       <ShiftDialog
@@ -77,6 +83,14 @@ export default function RosterPage() {
         onSave={handleSave}
         onDelete={handleDelete}
         onClose={shiftDialog.close}
+      />
+      <AssignDialog
+        shift={assignment.shift}
+        employees={employees}
+        error={assignment.error}
+        onAssign={assignment.assign}
+        onRemove={assignment.remove}
+        onClose={assignment.close}
       />
     </main>
   )

@@ -246,17 +246,71 @@
   margin: 0;
 }
 
-.page button.shift-card {
+.page button.shift-card-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--text);
   font-size: 14px;
   text-align: left;
 
   &:hover:not(:disabled) {
-    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.page button.assign-button {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.assigned-names {
+  color: var(--text-h);
+}
+
+.assign-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    color: var(--text-h);
+  }
+  .error-message {
+    margin-top: 0;
+  }
+}
+
+.assigned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+
+.assign-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+
+  .text-field {
+    flex: 1;
   }
 }
 
