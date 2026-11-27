@@ -80,6 +80,27 @@ final class EmployeeRepositoryTest extends KernelTestCase
         self::assertSame([], $found->getAdditionalPositions());
     }
 
+    public function testFindsOnlyActiveEmployeesOrderedByName(): void
+    {
+        $zed = new Employee($this->user, 'Zed', Position::Barista, ContractType::PartTime, 20);
+        $amyUser = new User('amy-active@example.com', 'hash', UserRole::Employee);
+        $goneUser = new User('gone-active@example.com', 'hash', UserRole::Employee);
+        $users = self::getContainer()->get(UserRepository::class);
+        $users->save($amyUser);
+        $users->save($goneUser);
+        $amy = new Employee($amyUser, 'Amy', Position::Service, ContractType::PartTime, 20);
+        $gone = new Employee($goneUser, 'Aaron', Position::Service, ContractType::PartTime, 20);
+        $gone->deactivate();
+        foreach ([$zed, $amy, $gone] as $employee) {
+            $this->employees->save($employee);
+        }
+
+        $names = array_map(static fn (Employee $e): string => $e->getName(), $this->employees->findActiveOrderedByName());
+
+        self::assertSame(['Amy', 'Zed'], array_values(array_intersect($names, ['Amy', 'Zed', 'Aaron'])));
+        self::assertNotContains('Aaron', $names);
+    }
+
     public function testRemovedEmployeeIsGone(): void
     {
         $employee = new Employee($this->user, 'Anna', Position::Barista, ContractType::PartTime, 20);

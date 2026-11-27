@@ -76,7 +76,7 @@ Example rows for Anna:
    to 14:00, two baristas).
 3. The manager assigns Anna to a shift, and the API runs all rules.
 4. If a rule fails, the API returns 422 with the reasons.
-5. The manager publishes, and a queued job emails everyone.
+5. The manager publishes, and queued jobs email every active employee: their own shifts in the text and a PDF of the whole roster attached, so they can arrange swaps among themselves.
 6. Anna requests a swap with Ben. Ben accepts. The rules run again for Ben
    before the manager can approve.
 

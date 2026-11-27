@@ -1,0 +1,27 @@
+framework:
+    messenger:
+        # Jobs that keep failing after all retries are parked here (see `bin/console messenger:failed:show`).
+        failure_transport: failed
+
+        transports:
+            # The queue lives in the PostgreSQL database (see MESSENGER_TRANSPORT_DSN in .env).
+            # A mail that cannot be sent is retried 3 times, waiting 1 s, 2 s, 4 s.
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+            failed: 'doctrine://default?queue_name=failed&auto_setup=0'
+
+        routing:
+            # Sending a mail never happens inside the web request: the job is queued and a worker sends it.
+            'App\Message\SendRosterPublishedMail': async
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                # Tests look at the queued jobs instead of running a worker.
+                async:
+                    dsn: 'in-memory://'

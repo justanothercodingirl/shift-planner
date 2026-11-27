@@ -9,9 +9,13 @@ use App\Entity\Shift;
 use App\Enum\Position;
 use App\Repository\RosterRepository;
 use App\Repository\ShiftRepository;
+use App\Tests\Mail\RosterTestData;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 
 final class RosterApiTest extends ApiTestCase
 {
+    use RosterTestData;
+
     public function testRequestWithoutTokenIsUnauthenticated(): void
     {
         $this->call('GET', '/api/rosters');
@@ -147,6 +151,23 @@ final class RosterApiTest extends ApiTestCase
 
         $this->call('GET', '/api/rosters/'.$roster->getId(), token: $token);
         self::assertSame('published', $this->body()['status']);
+    }
+
+    public function testPublishingQueuesTheMailsAndStillAnswersImmediately(): void
+    {
+        $roster = $this->draftRosterWithOneUnderstaffedShift();
+        $anna = $this->createEmployee('Anna');
+        $gone = $this->createEmployee('Gone', active: false);
+        $token = $this->managerToken();
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $token);
+
+        self::assertResponseStatusCodeSame(200);
+        $transport = self::getContainer()->get('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $transport);
+        $employeeIds = array_map(static fn ($envelope): int => $envelope->getMessage()->employeeId, $transport->getSent());
+        self::assertContains($anna->getId(), $employeeIds);
+        self::assertNotContains($gone->getId(), $employeeIds);
     }
 
     public function testPublishingTwiceIs409(): void

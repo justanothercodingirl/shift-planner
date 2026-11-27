@@ -23,6 +23,7 @@ class RosterService
         private readonly RosterRepository $rosters,
         private readonly ShiftRepository $shifts,
         private readonly AssignmentRepository $assignments,
+        private readonly RosterNotifier $notifier,
     ) {
     }
 
@@ -75,6 +76,8 @@ class RosterService
         $warnings = $this->understaffedWarnings($shifts, $this->assignmentsOf($roster));
         $roster->publish();
         $this->rosters->save($roster);
+        // After saving: the mails are queued, so no mail problem can undo or delay the publishing.
+        $this->notifier->notifyPublished($roster);
 
         return new PublishResult($roster, $warnings);
     }

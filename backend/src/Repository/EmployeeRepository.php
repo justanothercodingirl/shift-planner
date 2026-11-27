@@ -35,6 +35,12 @@ class EmployeeRepository extends ServiceEntityRepository
         return $this->findBy([], ['name' => 'ASC']);
     }
 
+    /** @return list<Employee> everyone who is not deactivated, by name */
+    public function findActiveOrderedByName(): array
+    {
+        return $this->findBy(['active' => true], ['name' => 'ASC']);
+    }
+
     public function remove(Employee $employee): void
     {
         $this->getEntityManager()->remove($employee);

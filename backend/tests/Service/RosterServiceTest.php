@@ -19,6 +19,7 @@ use App\Exception\RosterAlreadyPublishedException;
 use App\Exception\RosterHasNoShiftsException;
 use App\Exception\RosterNotFoundException;
 use App\Exception\WeekStartNotMondayException;
+use App\Message\SendRosterPublishedMail;
 use App\Repository\AssignmentRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\ShiftRepository;
@@ -26,6 +27,7 @@ use App\Repository\UserRepository;
 use App\Service\RosterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 
 final class RosterServiceTest extends KernelTestCase
 {
@@ -122,6 +124,39 @@ final class RosterServiceTest extends KernelTestCase
         self::assertSame(RosterStatus::Published, $this->service->get((int) $roster->getId())->getStatus());
     }
 
+    public function testPublishQueuesOneMailJobPerActiveEmployee(): void
+    {
+        $roster = $this->rosterWithOneShift();
+        $this->assign($this->service->shiftsOf($roster)[0], 'Anna');
+        $gone = new Employee(new User('gone-pub@example.com', 'hash', UserRole::Employee), 'Gone', Position::Barista, ContractType::PartTime, 20);
+        $gone->deactivate();
+        self::getContainer()->get(EmployeeRepository::class)->save($gone);
+
+        $this->service->publish((int) $roster->getId());
+
+        $queued = $this->queuedMessages();
+        self::assertContains(
+            self::getContainer()->get(EmployeeRepository::class)->findOneBy(['name' => 'Anna'])?->getId(),
+            array_map(static fn (SendRosterPublishedMail $m): int => $m->employeeId, $queued),
+        );
+        self::assertNotContains($gone->getId(), array_map(static fn (SendRosterPublishedMail $m): int => $m->employeeId, $queued));
+        foreach ($queued as $message) {
+            self::assertSame($roster->getId(), $message->rosterId);
+        }
+    }
+
+    public function testARefusedPublishQueuesNothing(): void
+    {
+        $roster = $this->service->create(new CreateRosterRequest('2031-02-03'));
+
+        try {
+            $this->service->publish((int) $roster->getId());
+        } catch (RosterHasNoShiftsException) {
+        }
+
+        self::assertSame([], $this->queuedMessages());
+    }
+
     public function testPublishingTwiceIsRefused(): void
     {
         $roster = $this->rosterWithOneShift();
@@ -201,6 +236,15 @@ final class RosterServiceTest extends KernelTestCase
             ['Mon 3 Feb 08:00 to 14:00, barista: 0 of 1 filled', 'Tue 4 Feb 10:00 to 18:00, barista: 0 of 1 filled'],
             array_column($warnings, 'reason'),
         );
+    }
+
+    /** @return list<SendRosterPublishedMail> */
+    private function queuedMessages(): array
+    {
+        $transport = self::getContainer()->get('messenger.transport.async');
+        self::assertInstanceOf(InMemoryTransport::class, $transport);
+
+        return array_map(static fn ($envelope): SendRosterPublishedMail => $envelope->getMessage(), $transport->getSent());
     }
 
     private function rosterWithOneShift(): Roster

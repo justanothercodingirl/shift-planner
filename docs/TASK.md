@@ -33,7 +33,7 @@ One task = one commit. Work in order.
 - [x] 22b. feat: add additional positions to the employee form in React
 
 ## Phase 4: Publish and notify
-- [ ] 23. feat: add roster publish workflow (draft to published)
+- [x] 23. feat: add roster publish workflow (draft to published)
 - [ ] 24. feat: send publish notification via Messenger
 - [ ] 24a. feat: notify employees about changes after publishing
 

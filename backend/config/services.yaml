@@ -11,6 +11,9 @@ parameters:
     # The default of 11 follows German working time law; businesses differ, so it is configurable.
     app.rest_period_hours: 11
 
+    # The sender of the roster emails. Change it to an address of the business's own domain in production.
+    app.mail_from: 'roster@shift-planner.example'
+
 services:
     # default configuration for services in *this* file
     _defaults:
