@@ -1,4 +1,5 @@
-import { CONTRACT_TYPES, labelOf, POSITIONS } from '../constants/options.js'
+import { CONTRACT_TYPES, labelOf } from '../constants/options.js'
+import { describePositions } from '../utils/positions.js'
 import Badge from './Badge.jsx'
 
 export default function EmployeeRow({ employee, onEdit, onDeactivate }) {
@@ -6,7 +7,7 @@ export default function EmployeeRow({ employee, onEdit, onDeactivate }) {
     <tr className={employee.active ? undefined : 'inactive'}>
       <td>{employee.name}</td>
       <td>{employee.email}</td>
-      <td>{labelOf(POSITIONS, employee.position)}</td>
+      <td>{describePositions(employee)}</td>
       <td>{labelOf(CONTRACT_TYPES, employee.contractType)}</td>
       <td>{employee.maxWeeklyHours} h</td>
       <td>

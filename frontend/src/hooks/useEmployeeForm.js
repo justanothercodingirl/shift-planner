@@ -11,6 +11,7 @@ const NEW_EMPLOYEE = {
   password: '',
   name: '',
   position: 'barista',
+  additionalPositions: [],
   contractType: 'part_time',
   maxWeeklyHours: String(suggestedHours('part_time')),
 }
@@ -24,6 +25,7 @@ export default function useEmployeeForm(employee) {
       ? {
           name: employee.name,
           position: employee.position,
+          additionalPositions: employee.additionalPositions ?? [],
           contractType: employee.contractType,
           maxWeeklyHours: String(employee.maxWeeklyHours),
         }
@@ -44,6 +46,16 @@ export default function useEmployeeForm(employee) {
     }))
   }
 
+  // Ticks or unticks one additional position.
+  function toggleAdditionalPosition(position) {
+    setValues((current) => ({
+      ...current,
+      additionalPositions: current.additionalPositions.includes(position)
+        ? current.additionalPositions.filter((other) => other !== position)
+        : [...current.additionalPositions, position],
+    }))
+  }
+
   function setHours(value) {
     setHoursEdited(true)
     setField('maxWeeklyHours')(value)
@@ -54,6 +66,10 @@ export default function useEmployeeForm(employee) {
     const common = {
       name: values.name.trim(),
       position: values.position,
+      // A box ticked before the main position changed to it is left out.
+      additionalPositions: values.additionalPositions.filter(
+        (position) => position !== values.position,
+      ),
       contractType: values.contractType,
       maxWeeklyHours: Number(values.maxWeeklyHours),
     }
@@ -61,5 +77,13 @@ export default function useEmployeeForm(employee) {
     return { email: values.email.trim(), password: values.password, ...common }
   }
 
-  return { editing, values, setField, setContractType, setHours, payload }
+  return {
+    editing,
+    values,
+    setField,
+    toggleAdditionalPosition,
+    setContractType,
+    setHours,
+    payload,
+  }
 }

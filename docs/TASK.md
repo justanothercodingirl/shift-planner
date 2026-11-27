@@ -29,7 +29,7 @@ One task = one commit. Work in order.
 - [x] 20. feat: add Availability entity, API and rule with tests
 - [x] 21. feat: add availability editor in React
 - [x] 22. feat: show violations in the assign dialog
-- [ ] 22a. feat: add additional positions to employees with tests
+- [x] 22a. feat: add additional positions to employees with tests
 - [ ] 22b. feat: add additional positions to the employee form in React
 
 ## Phase 4: Publish and notify

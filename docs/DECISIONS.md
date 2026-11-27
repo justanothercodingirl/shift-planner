@@ -129,6 +129,8 @@ One line per non-obvious decision. Add a row after every step.
 | 2026-11-26 | Stored as one JSON column `additional_positions` (list of enum values, default `[]` so existing employees get none), not as a join table | A short list that is only read together with its employee, and never queried on its own; Doctrine maps it to enums | A join table |
 | 2026-11-26 | `PositionMatchRule` accepts the shift when the required position is any of the employee's positions; the reason lists them all: "Shift needs kitchen, Anna is barista or service" (one position: unchanged "Anna is kitchen") | The manager sees at once why the person does not fit | Naming only the main position |
 | 2026-11-26 | Demo data: Anna has service as an additional position; Ben, Clara and Mara have none | Matches the developer's example and shows the rule working | Giving everyone extra positions |
+| 2026-11-27 | The employee form has a "Can also work as" row of checkboxes under the main Position dropdown, listing every position except the main one; a box ticked before the main position was changed to it is left out when saving | The server drops the main position anyway (2026-11-26); the form never offers or sends a pointless overlap | A multi-select list, or all positions with the main one disabled |
+| 2026-11-27 | All of an employee's positions are written by one helper, `describePositions()` ("Barista, Service", main first); the employee list and the assign dropdown both use it | One place decides the wording, and the manager sees at assignment time who can cover what | Each component formatting positions itself |
 
 ## Open questions
 | # | Question | Notes |

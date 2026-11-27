@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CONTRACT_TYPES, POSITIONS } from '../constants/options.js'
 import useEmployeeForm from '../hooks/useEmployeeForm.js'
+import PositionCheckboxes from './PositionCheckboxes.jsx'
 import SelectField from './SelectField.jsx'
 import TextField from './TextField.jsx'
 
@@ -56,6 +57,11 @@ export default function EmployeeForm({ employee, onSubmit, onCancel }) {
         options={POSITIONS}
         value={form.values.position}
         onChange={form.setField('position')}
+      />
+      <PositionCheckboxes
+        mainPosition={form.values.position}
+        selected={form.values.additionalPositions}
+        onToggle={form.toggleAdditionalPosition}
       />
       <SelectField
         label="Contract type"

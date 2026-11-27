@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { labelOf, POSITIONS } from '../constants/options.js'
+import { describePositions } from '../utils/positions.js'
 import SelectField from './SelectField.jsx'
 
 // Pick someone and press Assign. onAssign(employeeId) runs the request. The
@@ -14,7 +14,7 @@ export default function AssignForm({ employees, busy, onAssign }) {
 
   const options = employees.map((employee) => ({
     value: String(employee.id),
-    label: `${employee.name} (${labelOf(POSITIONS, employee.position)})`,
+    label: `${employee.name} (${describePositions(employee)})`,
   }))
   // Nothing chosen yet, or the chosen person was just assigned: use the first one left.
   const selected = options.some((option) => option.value === choice)
