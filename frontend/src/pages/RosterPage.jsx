@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import AssignDialog from '../components/AssignDialog.jsx'
-import Badge from '../components/Badge.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
 import MissingRoster from '../components/MissingRoster.jsx'
+import PublishWarnings from '../components/PublishWarnings.jsx'
+import RosterHeader from '../components/RosterHeader.jsx'
 import ShiftDialog from '../components/ShiftDialog.jsx'
 import WeekGrid from '../components/WeekGrid.jsx'
 import WeekNavigator from '../components/WeekNavigator.jsx'
 import useAssignment from '../hooks/useAssignment.js'
 import useEmployees from '../hooks/useEmployees.js'
+import usePublishRoster from '../hooks/usePublishRoster.js'
 import useRoster from '../hooks/useRoster.js'
 import useShiftActions from '../hooks/useShiftActions.js'
 import useShiftDialog from '../hooks/useShiftDialog.js'
@@ -21,6 +23,7 @@ export default function RosterPage() {
   const actions = useShiftActions(roster?.id, reload)
   const { employees } = useEmployees()
   const assignment = useAssignment(roster?.shifts ?? [], reload)
+  const publishing = usePublishRoster(roster?.id, reload)
 
   function handleAdd(date) {
     actions.clearError()
@@ -44,14 +47,16 @@ export default function RosterPage() {
 
   return (
     <main className="page page-roster">
-      <div className="page-header">
-        <h1>Roster</h1>
-        {roster && (
-          <Badge tone={roster.status === 'published' ? 'good' : 'neutral'}>
-            {roster.status === 'published' ? 'Published' : 'Draft'}
-          </Badge>
-        )}
-      </div>
+      <RosterHeader
+        roster={roster}
+        onPublish={publishing.publish}
+        publishing={publishing.busy}
+      />
+      <ErrorMessage error={publishing.error} />
+      <PublishWarnings
+        warnings={publishing.warnings}
+        onDismiss={publishing.dismissWarnings}
+      />
       <WeekNavigator
         weekStart={weekStart}
         onPrevious={() => setWeekStart(addDays(weekStart, -7))}

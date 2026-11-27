@@ -39,6 +39,19 @@ final class RosterController
         ));
     }
 
+    #[Route('/{id}/publish', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function publish(int $id): JsonResponse
+    {
+        $result = $this->rosters->publish($id);
+
+        return new JsonResponse(RosterResponse::withWarnings(
+            $result->roster,
+            $this->rosters->shiftsOf($result->roster),
+            $this->rosters->assignmentsOf($result->roster),
+            $result->warnings,
+        ));
+    }
+
     #[Route('', methods: ['POST'])]
     public function create(#[MapRequestPayload] CreateRosterRequest $request): JsonResponse
     {

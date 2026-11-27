@@ -9,6 +9,8 @@ use App\Entity\Assignment;
 use App\Entity\Roster;
 use App\Entity\Shift;
 use App\Exception\RosterAlreadyExistsException;
+use App\Exception\RosterAlreadyPublishedException;
+use App\Exception\RosterHasNoShiftsException;
 use App\Exception\RosterNotFoundException;
 use App\Exception\WeekStartNotMondayException;
 use App\Repository\AssignmentRepository;
@@ -52,6 +54,58 @@ class RosterService
     public function get(int $id): Roster
     {
         return $this->rosters->find($id) ?? throw new RosterNotFoundException($id);
+    }
+
+    /**
+     * Publishes a draft roster. Understaffed shifts are only a warning: the
+     * manager may knowingly run short (DECISIONS.md).
+     */
+    public function publish(int $id): PublishResult
+    {
+        $roster = $this->get($id);
+        if ($roster->isPublished()) {
+            throw new RosterAlreadyPublishedException($id);
+        }
+
+        $shifts = $this->shiftsOf($roster);
+        if ([] === $shifts) {
+            throw new RosterHasNoShiftsException($id);
+        }
+
+        $warnings = $this->understaffedWarnings($shifts, $this->assignmentsOf($roster));
+        $roster->publish();
+        $this->rosters->save($roster);
+
+        return new PublishResult($roster, $warnings);
+    }
+
+    /**
+     * @param list<Shift>                  $shifts
+     * @param array<int, list<Assignment>> $assignmentsByShift
+     *
+     * @return list<array{code: string, reason: string}> one warning per shift with fewer people than it needs
+     */
+    private function understaffedWarnings(array $shifts, array $assignmentsByShift): array
+    {
+        $warnings = [];
+        foreach ($shifts as $shift) {
+            $filled = count($assignmentsByShift[(int) $shift->getId()] ?? []);
+            if ($filled >= $shift->getHeadcount()) {
+                continue;
+            }
+
+            $warnings[] = ['code' => 'SHIFT_UNDERSTAFFED', 'reason' => sprintf(
+                '%s %s to %s, %s: %d of %d filled',
+                $shift->getDate()->format('D j M'),
+                $shift->getStartTime()->format('H:i'),
+                $shift->getEndTime()->format('H:i'),
+                $shift->getRequiredPosition()->label(),
+                $filled,
+                $shift->getHeadcount(),
+            )];
+        }
+
+        return $warnings;
     }
 
     /** @return list<Shift> */

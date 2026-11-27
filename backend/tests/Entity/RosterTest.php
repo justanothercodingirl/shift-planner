@@ -18,6 +18,17 @@ final class RosterTest extends TestCase
         self::assertSame(RosterStatus::Draft, $roster->getStatus());
     }
 
+    public function testPublishMovesTheRosterFromDraftToPublished(): void
+    {
+        $roster = new Roster(new \DateTimeImmutable('2026-11-23'));
+        self::assertFalse($roster->isPublished());
+
+        $roster->publish();
+
+        self::assertTrue($roster->isPublished());
+        self::assertSame(RosterStatus::Published, $roster->getStatus());
+    }
+
     public function testStatusUsesTheSpecValues(): void
     {
         self::assertSame(

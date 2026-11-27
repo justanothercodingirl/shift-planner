@@ -128,12 +128,97 @@ final class RosterApiTest extends ApiTestCase
         ], $body['shifts']);
     }
 
+    public function testManagerPublishesARosterAndGetsItBackWithWarnings(): void
+    {
+        $roster = $this->draftRosterWithOneUnderstaffedShift();
+        $token = $this->managerToken();
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $token);
+
+        self::assertResponseStatusCodeSame(200);
+        $body = $this->body();
+        self::assertSame('published', $body['status']);
+        self::assertSame('2031-04-07', $body['weekStart']);
+        self::assertCount(1, $body['shifts']);
+        self::assertSame(
+            [['code' => 'SHIFT_UNDERSTAFFED', 'reason' => 'Mon 7 Apr 08:00 to 14:00, barista: 0 of 2 filled']],
+            $body['warnings'],
+        );
+
+        $this->call('GET', '/api/rosters/'.$roster->getId(), token: $token);
+        self::assertSame('published', $this->body()['status']);
+    }
+
+    public function testPublishingTwiceIs409(): void
+    {
+        $roster = $this->draftRosterWithOneUnderstaffedShift();
+        $token = $this->managerToken();
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $token);
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $token);
+
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('ROSTER_ALREADY_PUBLISHED', $this->body()['error']['code']);
+    }
+
+    public function testPublishingARosterWithoutShiftsIs422(): void
+    {
+        $roster = new Roster(new \DateTimeImmutable('2031-04-14'));
+        self::getContainer()->get(RosterRepository::class)->save($roster);
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $this->managerToken());
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame('ROSTER_HAS_NO_SHIFTS', $this->body()['error']['code']);
+    }
+
+    public function testPublishNeedsAManagerAndAnExistingRoster(): void
+    {
+        $roster = $this->draftRosterWithOneUnderstaffedShift();
+        $employeeToken = $this->employeeToken();
+        $managerToken = $this->managerToken();
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish');
+        self::assertResponseStatusCodeSame(401);
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $employeeToken);
+        self::assertResponseStatusCodeSame(403);
+
+        $this->call('POST', '/api/rosters/999999/publish', token: $managerToken);
+        self::assertResponseStatusCodeSame(404);
+        self::assertSame('ROSTER_NOT_FOUND', $this->body()['error']['code']);
+    }
+
+    public function testAPublishedRosterStillAcceptsNewShifts(): void
+    {
+        $roster = $this->draftRosterWithOneUnderstaffedShift();
+        $token = $this->managerToken();
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/publish', token: $token);
+
+        $this->call('POST', '/api/rosters/'.$roster->getId().'/shifts', [
+            'date' => '2031-04-08', 'startTime' => '09:00', 'endTime' => '17:00', 'requiredPosition' => 'service', 'headcount' => 1,
+        ], $token);
+
+        self::assertResponseStatusCodeSame(201);
+    }
+
     public function testUnknownRosterIs404(): void
     {
         $this->call('GET', '/api/rosters/999999', token: $this->managerToken());
 
         self::assertResponseStatusCodeSame(404);
         self::assertSame('ROSTER_NOT_FOUND', $this->body()['error']['code']);
+    }
+
+    private function draftRosterWithOneUnderstaffedShift(): Roster
+    {
+        $roster = new Roster(new \DateTimeImmutable('2031-04-07'));
+        self::getContainer()->get(RosterRepository::class)->save($roster);
+        self::getContainer()->get(ShiftRepository::class)->save(
+            $this->shift($roster, '2031-04-07', '08:00', '14:00', Position::Barista, 2),
+        );
+
+        return $roster;
     }
 
     private function shift(Roster $roster, string $date, string $start, string $end, Position $position, int $headcount): Shift

@@ -30,11 +30,12 @@ One task = one commit. Work in order.
 - [x] 21. feat: add availability editor in React
 - [x] 22. feat: show violations in the assign dialog
 - [x] 22a. feat: add additional positions to employees with tests
-- [ ] 22b. feat: add additional positions to the employee form in React
+- [x] 22b. feat: add additional positions to the employee form in React
 
 ## Phase 4: Publish and notify
 - [ ] 23. feat: add roster publish workflow (draft to published)
 - [ ] 24. feat: send publish notification via Messenger
+- [ ] 24a. feat: notify employees about changes after publishing
 
 ## Phase 5: Swaps
 - [ ] 25. feat: add SwapRequest entity and request/accept/approve API

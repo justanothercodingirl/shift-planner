@@ -42,4 +42,15 @@ class Roster
     {
         return $this->status;
     }
+
+    public function isPublished(): bool
+    {
+        return RosterStatus::Published === $this->status;
+    }
+
+    /** Moves the roster from draft to published. The checks (not empty, not published twice) are in RosterService. */
+    public function publish(): void
+    {
+        $this->status = RosterStatus::Published;
+    }
 }

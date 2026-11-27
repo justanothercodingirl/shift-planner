@@ -24,6 +24,20 @@ final class RosterResponse
     }
 
     /**
+     * The roster with its shifts, plus the warnings that came up while publishing.
+     *
+     * @param list<Shift>                               $shifts
+     * @param array<int, list<Assignment>>              $assignmentsByShift
+     * @param list<array{code: string, reason: string}> $warnings
+     *
+     * @return array<string, mixed>
+     */
+    public static function withWarnings(Roster $roster, array $shifts, array $assignmentsByShift, array $warnings): array
+    {
+        return self::withShifts($roster, $shifts, $assignmentsByShift) + ['warnings' => $warnings];
+    }
+
+    /**
      * @param list<Shift>                  $shifts
      * @param array<int, list<Assignment>> $assignmentsByShift assignments keyed by shift id
      *
