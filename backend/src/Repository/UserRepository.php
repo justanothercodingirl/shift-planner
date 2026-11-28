@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Enum\UserRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -26,6 +27,12 @@ class UserRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->remove($user);
         $this->getEntityManager()->flush();
+    }
+
+    /** @return list<User> every login with the manager role */
+    public function findManagers(): array
+    {
+        return $this->findBy(['role' => UserRole::Manager], ['email' => 'ASC']);
     }
 
     public function findOneByEmail(string $email): ?User

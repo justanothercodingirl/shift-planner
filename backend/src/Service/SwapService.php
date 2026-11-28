@@ -44,6 +44,7 @@ class SwapService
         private readonly ShiftValidator $validator,
         private readonly Security $security,
         private readonly ClockInterface $clock,
+        private readonly SwapNotifier $notifier,
     ) {
     }
 
@@ -72,6 +73,7 @@ class SwapService
 
         $request = new SwapRequest($shift, $assignment, $assignment->getEmployee(), $target, $this->clock->now());
         $this->swaps->save($request);
+        $this->notifier->requested($request);
 
         return $request;
     }
@@ -86,6 +88,7 @@ class SwapService
 
         $request->accept();
         $this->swaps->save($request);
+        $this->notifier->accepted($request);
 
         return $request;
     }
@@ -98,6 +101,7 @@ class SwapService
 
         $request->decline();
         $this->swaps->save($request);
+        $this->notifier->declined($request);
 
         return $request;
     }
@@ -109,8 +113,10 @@ class SwapService
         $this->assertAllowed(SwapRequestVoter::CANCEL, $request);
         $this->assertCanBecome($request, SwapStatus::Cancelled);
 
+        $wasAccepted = SwapStatus::Accepted === $request->getStatus();
         $request->cancel();
         $this->swaps->save($request);
+        $this->notifier->cancelled($request, $wasAccepted);
 
         return $request;
     }
@@ -130,6 +136,7 @@ class SwapService
         $this->assignments->save($assignment);
         $request->approve();
         $this->swaps->save($request);
+        $this->notifier->approved($request);
 
         return $request;
     }
@@ -142,6 +149,7 @@ class SwapService
 
         $request->reject();
         $this->swaps->save($request);
+        $this->notifier->rejected($request);
 
         return $request;
     }
@@ -210,6 +218,7 @@ class SwapService
 
         $request->cancel();
         $this->swaps->save($request);
+        $this->notifier->cancelledBecauseShiftChanged($request);
 
         throw new SwapAssignmentChangedException();
     }

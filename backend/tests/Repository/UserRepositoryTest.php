@@ -40,6 +40,19 @@ final class UserRepositoryTest extends KernelTestCase
         self::assertSame(UserRole::Employee, $found->getRole());
     }
 
+    public function testFindsOnlyTheManagers(): void
+    {
+        $this->repository->save(new User('mgr-one@example.com', 'hash', UserRole::Manager));
+        $this->repository->save(new User('mgr-two@example.com', 'hash', UserRole::Manager));
+        $this->repository->save(new User('staff-find@example.com', 'hash', UserRole::Employee));
+
+        $emails = array_map(static fn (User $u): string => $u->getEmail(), $this->repository->findManagers());
+
+        self::assertContains('mgr-one@example.com', $emails);
+        self::assertContains('mgr-two@example.com', $emails);
+        self::assertNotContains('staff-find@example.com', $emails);
+    }
+
     public function testUnknownEmailReturnsNull(): void
     {
         self::assertNull($this->repository->findOneByEmail('nobody@example.com'));
