@@ -45,4 +45,10 @@ class Assignment
     {
         return $this->employee;
     }
+
+    /** Hands the shift over to another employee; the assignment itself (and its id) stays. */
+    public function reassignTo(Employee $employee): void
+    {
+        $this->employee = $employee;
+    }
 }

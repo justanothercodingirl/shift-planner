@@ -32,7 +32,7 @@ mobile app.
 | Roster | weekStart, status (draft, published) |
 | Shift | roster, date, start, end, requiredPosition, headcount* |
 | Assignment | shift, employee |
-| SwapRequest | assignment, targetEmployee, status |
+| SwapRequest | assignment, shift*, requester*, targetEmployee, status, createdAt* |
 
 Fields marked * were not in the original idea but are needed by the flows below.
 They are logged as proposals in DECISIONS.md.
@@ -42,7 +42,7 @@ Enums:
 - ContractType: full_time, part_time, working_student, mini_job
 - AvailabilityType: unavailable, preferred
 - RosterStatus: draft, published
-- SwapStatus: to be defined in the swap step (see DECISIONS.md, open questions)
+- SwapStatus: pending, accepted, declined, approved, rejected, cancelled
 
 ### Maximum weekly hours
 Set by the manager when creating the employee, because it comes from that
@@ -136,7 +136,9 @@ test, with no changes elsewhere.
 | Swap | Target employee declined | 409 |
 | Swap | A pending request already exists | 409 |
 | Swap | Target employee fails a rule | 422 |
-| Swap | Assignment was changed by someone else meanwhile | 409 |
+| Swap | Assignment was changed by someone else meanwhile | 409 (the request is cancelled) |
+| Swap | Shift is in a roster that is not published | 422 |
+| Swap | Approving a request the colleague has not accepted yet | 409 |
 
 ## 8. React screens
 1. Login

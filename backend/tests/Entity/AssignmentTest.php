@@ -40,4 +40,24 @@ final class AssignmentTest extends TestCase
         self::assertSame($shift, $assignment->getShift());
         self::assertSame($employee, $assignment->getEmployee());
     }
+
+    public function testReassignToHandsTheAssignmentToAnotherEmployee(): void
+    {
+        $shift = new Shift(
+            new Roster(new \DateTimeImmutable('2031-02-03')),
+            new \DateTimeImmutable('2031-02-05'),
+            new \DateTimeImmutable('09:00'),
+            new \DateTimeImmutable('15:00'),
+            Position::Barista,
+            1,
+        );
+        $anna = new Employee(new User('anna@example.com', 'hash', UserRole::Employee), 'Anna', Position::Barista, ContractType::PartTime, 20);
+        $bea = new Employee(new User('bea@example.com', 'hash', UserRole::Employee), 'Bea', Position::Barista, ContractType::PartTime, 20);
+        $assignment = new Assignment($shift, $anna);
+
+        $assignment->reassignTo($bea);
+
+        self::assertSame($bea, $assignment->getEmployee());
+        self::assertSame($shift, $assignment->getShift());
+    }
 }
