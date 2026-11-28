@@ -8,6 +8,7 @@ use App\Entity\Assignment;
 use App\Entity\Employee;
 use App\Entity\Roster;
 use App\Entity\Shift;
+use App\Enum\RosterStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
@@ -81,6 +82,37 @@ class AssignmentRepository extends ServiceEntityRepository
             ->addOrderBy('s.startTime', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The employee's own shifts in published rosters that have not ended yet (a
+     * shift that is running right now still counts), in time order. Looks across
+     * roster weeks. Drafts are never included: employees do not see them.
+     *
+     * @return list<Assignment>
+     */
+    public function findUpcomingOfEmployee(Employee $employee, \DateTimeImmutable $now): array
+    {
+        // An overnight shift that is still running started yesterday, so look one day back.
+        $assignments = $this->createQueryBuilder('a')
+            ->addSelect('s', 'r')
+            ->join('a.shift', 's')
+            ->join('s.roster', 'r')
+            ->where('a.employee = :employee')
+            ->andWhere('r.status = :published')
+            ->andWhere('s.date >= :from')
+            ->setParameter('employee', $employee)
+            ->setParameter('published', RosterStatus::Published)
+            ->setParameter('from', $now->modify('-1 day'), Types::DATE_IMMUTABLE)
+            ->orderBy('s.date', 'ASC')
+            ->addOrderBy('s.startTime', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_values(array_filter(
+            $assignments,
+            static fn (Assignment $assignment): bool => $assignment->getShift()->getEndsAt() > $now,
+        ));
     }
 
     /** @return list<Assignment> all assignments of all shifts in the roster, in one query */

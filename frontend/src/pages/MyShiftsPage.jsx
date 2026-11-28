@@ -1,9 +1,16 @@
-// Placeholder for employees. The real "my shifts" screen is built in a later step.
+import ErrorMessage from '../components/ErrorMessage.jsx'
+import MyShiftList from '../components/MyShiftList.jsx'
+import useMyShifts from '../hooks/useMyShifts.js'
+
+// The employee's own upcoming shifts from published rosters.
 export default function MyShiftsPage() {
+  const { shifts, loading, error } = useMyShifts()
+
   return (
-    <main className="page">
+    <main className="page page-wide">
       <h1>My shifts</h1>
-      <p>Your shifts will appear here once the roster is published.</p>
+      <ErrorMessage error={error} />
+      {loading ? <p>Loading…</p> : <MyShiftList shifts={shifts} />}
     </main>
   )
 }
