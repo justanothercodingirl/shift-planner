@@ -37,6 +37,16 @@ export const REPEATS = [
   { value: 'date', label: 'One date only' },
 ]
 
+// The statuses of a swap request, with the badge colour that fits each.
+export const SWAP_STATUSES = [
+  { value: 'pending', label: 'Waiting for colleague', tone: 'neutral' },
+  { value: 'accepted', label: 'Waiting for manager', tone: 'neutral' },
+  { value: 'declined', label: 'Declined', tone: 'muted' },
+  { value: 'approved', label: 'Approved', tone: 'good' },
+  { value: 'rejected', label: 'Rejected', tone: 'muted' },
+  { value: 'cancelled', label: 'Cancelled', tone: 'muted' },
+]
+
 export function labelOf(options, value) {
   return options.find((option) => option.value === value)?.label ?? value
 }

@@ -14,11 +14,13 @@ export default function AppLayout() {
             <>
               <NavLink to="/roster">Roster</NavLink>
               <NavLink to="/employees">Employees</NavLink>
+              <NavLink to="/swaps">Swaps</NavLink>
             </>
           ) : (
             <>
               <NavLink to="/my-shifts">My shifts</NavLink>
               <NavLink to="/availability">My availability</NavLink>
+              <NavLink to="/swaps">Swaps</NavLink>
             </>
           )}
         </nav>

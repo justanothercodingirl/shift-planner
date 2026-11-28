@@ -9,6 +9,7 @@ import EmployeesPage from './pages/EmployeesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import MyShiftsPage from './pages/MyShiftsPage.jsx'
 import RosterPage from './pages/RosterPage.jsx'
+import SwapsPage from './pages/SwapsPage.jsx'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/my-shifts" element={<MyShiftsPage />} />
           <Route path="/availability" element={<AvailabilityPage />} />
+          <Route path="/swaps" element={<SwapsPage />} />
           <Route element={<ManagerRoute />}>
             <Route path="/roster" element={<RosterPage />} />
             <Route path="/employees" element={<EmployeesPage />} />

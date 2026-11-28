@@ -41,7 +41,8 @@ One task = one commit. Work in order.
 - [x] 25. feat: add SwapRequest entity and request/accept/approve API
 - [x] 25a. feat: send mails for each swap step
 - [ ] 26. feat: add swap screens in React
-- [ ] 27. feat: add my shifts screen in React
+- [ ] 26a. feat: list only eligible colleagues in the swap dialog
+- [x] 27. feat: add my shifts screen in React
 
 ## Phase 6: Finish
 - [ ] 28. feat: add hours overview and CSV export
