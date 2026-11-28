@@ -2,9 +2,9 @@ import ErrorMessage from '../components/ErrorMessage.jsx'
 import MyShiftList from '../components/MyShiftList.jsx'
 import SwapRequestDialog from '../components/SwapRequestDialog.jsx'
 import useAuth from '../hooks/useAuth.js'
-import useColleagues from '../hooks/useColleagues.js'
 import useMyShifts from '../hooks/useMyShifts.js'
 import useSwapActions from '../hooks/useSwapActions.js'
+import useSwapCandidates from '../hooks/useSwapCandidates.js'
 import useSwapDialog from '../hooks/useSwapDialog.js'
 import useSwapRequests from '../hooks/useSwapRequests.js'
 
@@ -14,9 +14,9 @@ export default function MyShiftsPage() {
   const { user } = useAuth()
   const { shifts, loading, error } = useMyShifts()
   const swaps = useSwapRequests()
-  const { colleagues, loading: loadingColleagues } = useColleagues()
   const actions = useSwapActions(swaps.reload)
   const dialog = useSwapDialog(shifts)
+  const candidates = useSwapCandidates(dialog.shift?.id ?? null, dialog.openKey)
 
   function handleRequestSwap(shift) {
     actions.clearError()
@@ -43,8 +43,9 @@ export default function MyShiftsPage() {
       )}
       <SwapRequestDialog
         shift={dialog.shift}
-        colleagues={colleagues}
-        loadingColleagues={loadingColleagues}
+        candidates={candidates.candidates}
+        loadingCandidates={candidates.loading}
+        candidatesError={candidates.error}
         error={actions.error}
         busy={actions.busy}
         onSend={handleSend}

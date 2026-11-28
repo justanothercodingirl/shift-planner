@@ -7,8 +7,8 @@ namespace App\Dto;
 use App\Entity\Employee;
 use App\Enum\Position;
 
-/** What an employee may know about a colleague: name and positions, no contact details. */
-final class ColleagueResponse
+/** A colleague who could take over a shift: name and positions, no contact details. */
+final class SwapCandidateResponse
 {
     /**
      * @return array{id: int|null, name: string, position: string, additionalPositions: list<string>}

@@ -6,11 +6,14 @@ namespace App\Tests\Service;
 
 use App\Dto\CreateSwapRequest;
 use App\Entity\Assignment;
+use App\Entity\Availability;
 use App\Entity\Employee;
 use App\Entity\Roster;
 use App\Entity\Shift;
 use App\Entity\SwapRequest;
 use App\Entity\User;
+use App\Enum\AvailabilityType;
+use App\Enum\ContractType;
 use App\Enum\Position;
 use App\Enum\SwapStatus;
 use App\Enum\UserRole;
@@ -28,6 +31,8 @@ use App\Exception\SwapShiftStartedException;
 use App\Exception\SwapWithYourselfException;
 use App\Message\SendRosterChangedMail;
 use App\Repository\AssignmentRepository;
+use App\Repository\AvailabilityRepository;
+use App\Repository\EmployeeRepository;
 use App\Repository\RosterRepository;
 use App\Repository\SwapRequestRepository;
 use App\Repository\UserRepository;
@@ -520,7 +525,165 @@ final class SwapServiceTest extends KernelTestCase
         self::assertSame([], $this->service->list());
     }
 
+    // ---- who can be asked -------------------------------------------------------
+
+    public function testOnlyColleaguesQualifiedForTheShiftsPositionAreCandidates(): void
+    {
+        // Ben works service and Clara in the kitchen: the shift needs a barista. Bea is a barista.
+        $cleo = $this->employeeWith('Cleo', Position::Service, [Position::Barista]); // barista as an additional position
+
+        self::assertSame(['Bea', 'Cleo'], $this->candidateNames());
+        self::assertNotContains('Ben', $this->candidateNames());
+        self::assertNotContains('Clara', $this->candidateNames());
+        self::assertNotNull($cleo->getId());
+    }
+
+    public function testTheOwnerAndDeactivatedPeopleAreNotCandidates(): void
+    {
+        $this->createEmployee('Gone', Position::Barista, active: false);
+
+        $names = $this->candidateNames();
+
+        self::assertNotContains('Anna', $names);
+        self::assertNotContains('Gone', $names);
+    }
+
+    public function testCandidatesAreListedByName(): void
+    {
+        $this->createEmployee('Aaron', Position::Barista);
+
+        self::assertSame(['Aaron', 'Bea'], $this->candidateNames());
+    }
+
+    public function testSomeoneWithAClashingShiftIsNotACandidate(): void
+    {
+        $this->saveAssignment($this->createShift($this->shift->getRoster(), '2031-02-04', '10:00', '16:00', Position::Barista, 1), $this->bea);
+
+        self::assertNotContains('Bea', $this->candidateNames());
+    }
+
+    public function testSomeoneWithTooLittleRestIsNotACandidate(): void
+    {
+        // Bea works until 23:00 the evening before; the shift starts at 08:00: 9 hours of rest.
+        $this->saveAssignment($this->createShift($this->shift->getRoster(), '2031-02-03', '20:00', '23:00', Position::Barista, 1), $this->bea);
+
+        self::assertNotContains('Bea', $this->candidateNames());
+    }
+
+    public function testSomeoneWhoWouldGoOverTheirWeeklyHoursIsNotACandidate(): void
+    {
+        // Bea may work 20 hours a week and already has 18; the shift is 6 more.
+        foreach (['2031-02-05', '2031-02-06', '2031-02-07'] as $date) {
+            $this->saveAssignment($this->createShift($this->shift->getRoster(), $date, '08:00', '14:00', Position::Barista, 1), $this->bea);
+        }
+
+        self::assertNotContains('Bea', $this->candidateNames());
+    }
+
+    public function testSomeoneUnavailableThatDayIsNotACandidate(): void
+    {
+        self::getContainer()->get(AvailabilityRepository::class)->save(new Availability(
+            $this->bea,
+            \App\Enum\Weekday::Tuesday,
+            null,
+            new \DateTimeImmutable('07:00'),
+            new \DateTimeImmutable('15:00'),
+            AvailabilityType::Unavailable,
+        ));
+
+        self::assertNotContains('Bea', $this->candidateNames());
+    }
+
+    public function testSomeoneAlreadyOnTheShiftIsNotACandidate(): void
+    {
+        $this->saveAssignment($this->shift, $this->bea); // written directly: the shift now has two people
+
+        self::assertNotContains('Bea', $this->candidateNames());
+    }
+
+    public function testAFullShiftDoesNotEmptyTheList(): void
+    {
+        // The shift has one place and Anna holds it, yet Bea is listed: a handover keeps the headcount.
+        self::assertSame(1, $this->shift->getHeadcount());
+        self::assertContains('Bea', $this->candidateNames());
+    }
+
+    public function testEveryCandidateCanReallyAccept(): void
+    {
+        foreach ($this->service->candidates((int) $this->assignment->getId()) as $candidate) {
+            $this->signInAs($this->anna->getUser());
+            $request = $this->ask($candidate);
+            $this->signInAs($candidate->getUser());
+
+            self::assertSame(SwapStatus::Accepted, $this->service->accept((int) $request->getId())->getStatus());
+            $this->signInAs($this->anna->getUser());
+            $this->service->cancel((int) $request->getId());
+        }
+
+        self::assertNotSame([], $this->candidateNames());
+    }
+
+    public function testOnlyTheOwnerMayListCandidates(): void
+    {
+        $this->signInAs($this->ben->getUser());
+
+        $this->expectException(AccessDeniedException::class);
+        $this->service->candidates((int) $this->assignment->getId());
+    }
+
+    public function testCandidatesOfAnUnknownAssignmentAreNotFound(): void
+    {
+        $this->expectException(AssignmentNotFoundException::class);
+
+        $this->service->candidates(999999);
+    }
+
+    public function testNoCandidatesForADraftRosterOrAStartedShift(): void
+    {
+        $draft = new Roster(new \DateTimeImmutable('2031-03-03'));
+        self::getContainer()->get(RosterRepository::class)->save($draft);
+        $draftAssignment = $this->saveAssignment($this->createShift($draft, '2031-03-04', '08:00', '14:00', Position::Barista, 1), $this->anna);
+        [, $pastAssignment] = $this->pastShiftOf($this->anna);
+
+        try {
+            $this->service->candidates((int) $draftAssignment->getId());
+            self::fail('A draft roster cannot be swapped.');
+        } catch (RosterNotPublishedException) {
+        }
+
+        $this->expectException(SwapShiftStartedException::class);
+        $this->service->candidates((int) $pastAssignment->getId());
+    }
+
+    public function testNoCandidatesWhileARequestIsAlreadyOpen(): void
+    {
+        $this->ask($this->bea);
+
+        $this->expectException(SwapAlreadyOpenException::class);
+        $this->service->candidates((int) $this->assignment->getId());
+    }
+
     // ---- helpers ----------------------------------------------------------------
+
+    /** @return list<string> */
+    private function candidateNames(): array
+    {
+        return array_map(
+            static fn (Employee $e): string => $e->getName(),
+            $this->service->candidates((int) $this->assignment->getId()),
+        );
+    }
+
+    /** @param list<Position> $additionalPositions */
+    private function employeeWith(string $name, Position $position, array $additionalPositions): Employee
+    {
+        $user = new User(strtolower($name).'-cand@example.com', 'hash', UserRole::Employee);
+        self::getContainer()->get(UserRepository::class)->save($user);
+        $employee = new Employee($user, $name, $position, ContractType::PartTime, 20, $additionalPositions);
+        self::getContainer()->get(EmployeeRepository::class)->save($employee);
+
+        return $employee;
+    }
 
     private function ask(Employee $target): SwapRequest
     {

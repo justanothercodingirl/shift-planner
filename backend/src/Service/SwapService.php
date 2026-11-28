@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Dto\CreateSwapRequest;
+use App\Entity\Assignment;
+use App\Entity\Employee;
 use App\Entity\Shift;
 use App\Entity\SwapRequest;
 use App\Entity\User;
@@ -51,14 +53,7 @@ class SwapService
     /** An employee asks a colleague to take over one of their own shifts. */
     public function request(int $assignmentId, CreateSwapRequest $input): SwapRequest
     {
-        $assignment = $this->assignments->find($assignmentId) ?? throw new AssignmentNotFoundException($assignmentId);
-        $this->assertAllowed(SwapRequestVoter::REQUEST, $assignment);
-
-        $shift = $assignment->getShift();
-        if (!$shift->getRoster()->isPublished()) {
-            throw new RosterNotPublishedException();
-        }
-        $this->assertNotStarted($shift);
+        $assignment = $this->assignmentToSwap($assignmentId);
 
         $target = $this->employees->get($input->targetEmployeeId);
         if ($target->getId() === $assignment->getEmployee()->getId()) {
@@ -67,15 +62,35 @@ class SwapService
         if (!$target->isActive()) {
             throw new EmployeeInactiveException($target->getName());
         }
-        if (null !== $this->swaps->findOpenForAssignment($assignment)) {
-            throw new SwapAlreadyOpenException();
-        }
 
+        $shift = $assignment->getShift();
         $request = new SwapRequest($shift, $assignment, $assignment->getEmployee(), $target, $this->clock->now());
         $this->swaps->save($request);
         $this->notifier->requested($request);
 
         return $request;
+    }
+
+    /**
+     * The colleagues the owner of an assignment could ask: every other active
+     * employee for whom the swap would work today, by name. It is exactly the
+     * check that runs when the colleague accepts, so nobody is listed who would
+     * be refused for position, an overlapping shift, rest, weekly hours or
+     * availability. Refuses what asking would refuse (not the owner, a draft
+     * roster, a shift that has started, a request that is already open).
+     *
+     * @return list<Employee>
+     */
+    public function candidates(int $assignmentId): array
+    {
+        $assignment = $this->assignmentToSwap($assignmentId);
+        $owner = $assignment->getEmployee();
+
+        return array_values(array_filter(
+            $this->employeeRepository->findActiveOrderedByName(),
+            fn (Employee $colleague): bool => $colleague->getId() !== $owner->getId()
+                && [] === $this->violationsFor($colleague, $assignment->getShift()),
+        ));
     }
 
     /** The colleague agrees. The rules run for them now, so they hear about a problem at once. */
@@ -178,6 +193,26 @@ class SwapService
             : array_values(array_filter($requests, static fn (SwapRequest $r): bool => $r->getStatus() === $status));
     }
 
+    /**
+     * The assignment a swap can be asked for: it exists, belongs to the signed-in
+     * employee, is in a published roster, has not started, and has no open request.
+     */
+    private function assignmentToSwap(int $assignmentId): Assignment
+    {
+        $assignment = $this->assignments->find($assignmentId) ?? throw new AssignmentNotFoundException($assignmentId);
+        $this->assertAllowed(SwapRequestVoter::REQUEST, $assignment);
+
+        if (!$assignment->getShift()->getRoster()->isPublished()) {
+            throw new RosterNotPublishedException();
+        }
+        $this->assertNotStarted($assignment->getShift());
+        if (null !== $this->swaps->findOpenForAssignment($assignment)) {
+            throw new SwapAlreadyOpenException();
+        }
+
+        return $assignment;
+    }
+
     private function get(int $id): SwapRequest
     {
         return $this->swaps->find($id) ?? throw new SwapRequestNotFoundException($id);
@@ -241,12 +276,25 @@ class SwapService
             throw new EmployeeInactiveException($target->getName());
         }
 
-        $violations = array_values(array_filter(
-            $this->validator->validate($target, $request->getShift()),
-            static fn (Violation $violation): bool => 'SHIFT_FULL' !== $violation->code,
-        ));
+        $violations = $this->violationsFor($target, $request->getShift());
         if ([] !== $violations) {
             throw new RuleViolationException($violations);
         }
+    }
+
+    /**
+     * Every rule broken if this colleague took the shift. SHIFT_FULL is left out:
+     * the requester is still on the shift until the manager approves, and a
+     * handover keeps the headcount. Used for the candidate list and for accepting
+     * and approving, so they can never disagree.
+     *
+     * @return list<Violation>
+     */
+    private function violationsFor(Employee $colleague, Shift $shift): array
+    {
+        return array_values(array_filter(
+            $this->validator->validate($colleague, $shift),
+            static fn (Violation $violation): bool => 'SHIFT_FULL' !== $violation->code,
+        ));
     }
 }

@@ -265,6 +265,60 @@ final class SwapApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    public function testTheOwnerGetsOnlyTheColleaguesWhoCouldTakeTheShift(): void
+    {
+        $this->call('GET', $this->candidatesUrl(), null, $this->employeeToken());
+
+        self::assertResponseStatusCodeSame(200);
+        $body = $this->body();
+        // Ben works service, the shift needs a barista: only Bea qualifies. No emails are sent along.
+        self::assertSame(['Bea'], array_column($body, 'name'));
+        self::assertSame(['id', 'name', 'position', 'additionalPositions'], array_keys($body[0]));
+        self::assertSame($this->bea->getId(), $body[0]['id']);
+        self::assertSame('barista', $body[0]['position']);
+        self::assertSame([], $body[0]['additionalPositions']);
+    }
+
+    public function testCandidatesNeedALoginAndTheOwner(): void
+    {
+        $beaToken = $this->login(self::BEA_EMAIL);
+
+        $this->call('GET', $this->candidatesUrl());
+        self::assertResponseStatusCodeSame(401);
+
+        $this->call('GET', $this->candidatesUrl(), null, $beaToken);
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame('FORBIDDEN', $this->body()['error']['code']);
+
+        $this->call('GET', '/api/assignments/999999/swap-candidates', null, $beaToken);
+        self::assertResponseStatusCodeSame(404);
+        self::assertSame('ASSIGNMENT_NOT_FOUND', $this->body()['error']['code']);
+    }
+
+    public function testCandidatesAreRefusedWhileARequestIsOpen(): void
+    {
+        $token = $this->employeeToken();
+        $this->call('POST', $this->askUrl(), ['targetEmployeeId' => $this->bea->getId()], $token);
+        self::assertResponseStatusCodeSame(201);
+
+        $this->call('GET', $this->candidatesUrl(), null, $token);
+
+        self::assertResponseStatusCodeSame(409);
+        self::assertSame('SWAP_ALREADY_OPEN', $this->body()['error']['code']);
+    }
+
+    public function testTheOldColleagueListIsGone(): void
+    {
+        $this->call('GET', '/api/colleagues', null, $this->employeeToken());
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    private function candidatesUrl(): string
+    {
+        return '/api/assignments/'.$this->assignment->getId().'/swap-candidates';
+    }
+
     private function askUrl(): string
     {
         return '/api/assignments/'.$this->assignment->getId().'/swap-requests';

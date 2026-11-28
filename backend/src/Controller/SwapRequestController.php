@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Dto\CreateSwapRequest;
+use App\Dto\SwapCandidateResponse;
 use App\Dto\SwapListQuery;
 use App\Dto\SwapRequestResponse;
 use App\Service\SwapService;
@@ -26,6 +27,12 @@ final class SwapRequestController
     public function request(int $id, #[MapRequestPayload] CreateSwapRequest $input): JsonResponse
     {
         return new JsonResponse(SwapRequestResponse::from($this->swaps->request($id, $input)), Response::HTTP_CREATED);
+    }
+
+    #[Route('/api/assignments/{id}/swap-candidates', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function candidates(int $id): JsonResponse
+    {
+        return new JsonResponse(array_map(SwapCandidateResponse::from(...), $this->swaps->candidates($id)));
     }
 
     #[Route('/api/swap-requests', methods: ['GET'])]
