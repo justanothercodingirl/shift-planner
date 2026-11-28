@@ -11,6 +11,7 @@ use App\Entity\Shift;
 use App\Exception\InvalidShiftTimesException;
 use App\Exception\ShiftNotFoundException;
 use App\Exception\ShiftOutsideRosterWeekException;
+use App\Mail\ShiftDescription;
 use App\Repository\AssignmentRepository;
 use App\Repository\ShiftRepository;
 
@@ -20,6 +21,7 @@ class ShiftService
         private readonly ShiftRepository $shifts,
         private readonly RosterService $rosters,
         private readonly AssignmentRepository $assignments,
+        private readonly RosterChangeNotifier $notifier,
     ) {
     }
 
@@ -50,15 +52,23 @@ class ShiftService
         $shift = $this->get($id);
         [$date, $start, $end] = $this->validated($shift->getRoster(), $request);
 
+        $before = ShiftDescription::of($shift);
         $shift->update($date, $start, $end, $request->requiredPosition, $request->headcount);
         $this->shifts->save($shift);
+        $this->notifier->shiftChanged($shift, $before, ShiftDescription::of($shift), $this->assignments->findByShift($shift));
 
         return $shift;
     }
 
     public function delete(int $id): void
     {
-        $this->shifts->remove($this->get($id));
+        $shift = $this->get($id);
+        // Taken before removing: the assignments disappear with the shift.
+        $people = $this->assignments->findByShift($shift);
+        $description = ShiftDescription::of($shift);
+
+        $this->shifts->remove($shift);
+        $this->notifier->shiftDeleted($shift, $description, $people);
     }
 
     /**

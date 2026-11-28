@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Message\SendRosterChangedMail;
 use App\Message\SendRosterPublishedMail;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -38,5 +39,10 @@ final class MessengerConfigTest extends TestCase
     public function testTheRosterMailJobGoesToTheAsyncQueue(): void
     {
         self::assertSame('async', $this->messenger['routing'][SendRosterPublishedMail::class]);
+    }
+
+    public function testTheChangeMailJobGoesToTheAsyncQueueToo(): void
+    {
+        self::assertSame('async', $this->messenger['routing'][SendRosterChangedMail::class]);
     }
 }

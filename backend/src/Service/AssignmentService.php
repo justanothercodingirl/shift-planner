@@ -16,6 +16,7 @@ class AssignmentService
         private readonly ShiftService $shifts,
         private readonly EmployeeService $employees,
         private readonly ShiftValidator $validator,
+        private readonly RosterChangeNotifier $notifier,
     ) {
     }
 
@@ -33,6 +34,7 @@ class AssignmentService
 
         $assignment = new Assignment($shift, $employee);
         $this->assignments->save($assignment);
+        $this->notifier->assigned($assignment);
 
         return $assignment;
     }
@@ -41,5 +43,6 @@ class AssignmentService
     {
         $assignment = $this->assignments->find($id) ?? throw new AssignmentNotFoundException($id);
         $this->assignments->remove($assignment);
+        $this->notifier->unassigned($assignment);
     }
 }

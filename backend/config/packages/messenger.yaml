@@ -17,6 +17,7 @@ framework:
         routing:
             # Sending a mail never happens inside the web request: the job is queued and a worker sends it.
             'App\Message\SendRosterPublishedMail': async
+            'App\Message\SendRosterChangedMail': async
 
 when@test:
     framework:

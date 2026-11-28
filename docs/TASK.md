@@ -34,11 +34,12 @@ One task = one commit. Work in order.
 
 ## Phase 4: Publish and notify
 - [x] 23. feat: add roster publish workflow (draft to published)
-- [ ] 24. feat: send publish notification via Messenger
+- [x] 24. feat: send publish notification via Messenger
 - [ ] 24a. feat: notify employees about changes after publishing
 
 ## Phase 5: Swaps
 - [ ] 25. feat: add SwapRequest entity and request/accept/approve API
+- [ ] 25a. feat: send mails for each swap step
 - [ ] 26. feat: add swap screens in React
 - [ ] 27. feat: add my shifts screen in React
 
